@@ -61,7 +61,7 @@ class NewsProvider with ChangeNotifier {
   // Лайкнуть новость
   Future<bool> likeNews(String newsId) async {
     try {
-      await _newsService.likeNews(newsId);
+      await _newsService.toggleLike(newsId);
       
       // Перезагружаем новость для получения обновленных данных
       if (_selectedNews?.id == newsId) {
