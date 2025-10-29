@@ -1,0 +1,461 @@
+---
+description: Mobile development best practices, network configuration, and Flutter-specific guidelines
+---
+
+# Mobile Development Best Practices
+
+## Network Configuration
+
+### Development Environment
+
+#### Backend API Access
+- **Problem**: Mobile devices (physical or simulator) cannot use `localhost` or `127.0.0.1`
+- **Solution**: Use host machine's IP address
+
+#### Finding Mac IP Address
+```bash
+# Get Mac's local IP
+ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}' | head -1
+
+# Common patterns:
+# - 192.168.x.x (home WiFi)
+# - 10.x.x.x (corporate/institutional networks)
+# - 172.x.x.x (private networks)
+```
+
+#### Configuration in Flutter
+Update [frontend/lib/config/constants.dart](mdc:frontend/lib/config/constants.dart):
+
+```dart
+class AppConstants {
+  // Development: Use Mac's IP address
+  // Production: Use domain name
+  static const String apiBaseUrl = String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'http://10.181.101.216:5000/api', // Replace with your Mac IP
+  );
+}
+```
+
+#### Backend CORS Configuration
+Ensure backend accepts requests from mobile devices in [backend/server.js](mdc:backend/server.js):
+
+```javascript
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',           // Flutter Web
+    'http://10.181.101.216:3000',     // Flutter Web from IP
+    'http://127.0.0.1:*',             // Local development
+    // Mobile apps don't send Origin header, so allow all for dev
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+```
+
+### Network Debugging
+
+#### Test Backend Connectivity
+```bash
+# From Mac (should work)
+curl http://localhost:5000/api/health
+
+# From Mac using IP (simulates mobile device)
+curl http://YOUR_MAC_IP:5000/api/health
+
+# If second command fails, check firewall settings
+```
+
+#### Common Network Issues
+
+1. **ClientException in Flutter**
+   - Cause: Cannot reach backend
+   - Fix: Use Mac IP, not localhost
+   - Verify: Test with curl from IP
+
+2. **Connection Timeout**
+   - Cause: Firewall blocking port
+   - Fix: Allow port 5000 in Mac firewall settings
+   - Verify: `sudo lsof -i :5000`
+
+3. **CORS Errors**
+   - Cause: Backend rejecting requests
+   - Fix: Update CORS configuration
+   - Note: Mobile apps often don't send Origin header
+
+## Flutter Development Workflow
+
+### Development Cycle
+
+#### Rapid Development - Use Simulator
+```bash
+# Start simulator
+open -a Simulator
+
+# Run app (hot reload enabled)
+flutter run -d <simulator-id>
+
+# Benefits:
+# - Fast compile times
+# - Hot reload works perfectly
+# - Easy debugging
+# - No code signing issues
+```
+
+#### Real Device Testing - Use Physical iPhone
+```bash
+# Run in release mode (more stable)
+flutter run --release -d <device-id>
+
+# Benefits:
+# - Real-world performance
+# - Test actual network conditions
+# - Test device-specific features (GPS, camera)
+# - Verify production behavior
+```
+
+### Hot Reload vs Hot Restart
+
+#### Hot Reload (r)
+- Preserves app state
+- Fast (< 1 second)
+- Use for UI changes
+- Doesn't work with:
+  - main() changes
+  - initState() changes
+  - Global variables
+
+#### Hot Restart (R)
+- Restarts app completely
+- Slower (~5-10 seconds)
+- Use for:
+  - Logic changes
+  - State changes
+  - Configuration changes
+
+### Clean Build
+When things go wrong:
+```bash
+flutter clean
+flutter pub get
+cd ios && pod install && cd ..
+flutter run
+```
+
+## State Management with Provider
+
+### Pattern Used in EcoDrug
+
+#### AuthProvider Structure
+```dart
+class AuthProvider with ChangeNotifier {
+  User? _user;
+  bool _isLoading = false;
+  String? _error;
+
+  // Always notifyListeners() after state changes
+  Future<void> login(String email, String password) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();  // Update UI immediately
+
+    try {
+      _user = await _authService.login(email, password);
+      _isLoading = false;
+      notifyListeners();  // Update UI with result
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();  // Update UI with error
+    }
+  }
+}
+```
+
+#### Consumer Pattern
+```dart
+Consumer<AuthProvider>(
+  builder: (context, authProvider, child) {
+    if (authProvider.isLoading) {
+      return LoadingIndicator();
+    }
+    return LoginForm();
+  },
+)
+```
+
+### Best Practices
+
+1. **Call notifyListeners() after every state change**
+2. **Show loading states** - Better UX
+3. **Handle errors gracefully** - Display user-friendly messages
+4. **Don't call async code in build()** - Use initState() or buttons
+5. **Use Consumer for specific widgets** - Not Provider.of in build()
+
+## API Service Architecture
+
+### Layered Architecture
+
+```
+Screens (UI)
+    ↓
+Providers (State Management)
+    ↓
+Services (API Calls)
+    ↓
+Backend (REST API)
+```
+
+### Service Layer Pattern
+
+#### Base API Service
+[frontend/lib/services/api_service.dart](mdc:frontend/lib/services/api_service.dart) handles:
+- HTTP client configuration
+- Authorization headers
+- Error handling
+- Timeouts
+
+#### Feature Services
+Each module has dedicated service:
+- `auth_service.dart` - Authentication
+- `profile_service.dart` - User profiles
+- `news_service.dart` - News feed
+- etc.
+
+### Error Handling
+
+#### Service Layer
+```dart
+try {
+  final response = await http.post(url, body: data);
+  if (response.statusCode == 200) {
+    return parseData(response.body);
+  } else {
+    throw ApiException(response.body);
+  }
+} catch (e) {
+  throw NetworkException('Cannot connect to server');
+}
+```
+
+#### Provider Layer
+```dart
+try {
+  final result = await service.fetchData();
+  _data = result;
+} catch (e) {
+  _error = _formatError(e);  // User-friendly message
+}
+notifyListeners();
+```
+
+#### UI Layer
+```dart
+if (provider.error != null) {
+  return ErrorWidget(message: provider.error);
+}
+```
+
+## Code Organization
+
+### File Structure
+```
+lib/
+├── main.dart                    # App entry point
+├── config/
+│   ├── constants.dart          # API URLs, app constants
+│   └── routes.dart             # Named routes
+├── models/                     # Data models
+│   ├── user.dart
+│   └── profile.dart
+├── services/                   # API communication
+│   ├── api_service.dart        # Base HTTP client
+│   ├── auth_service.dart
+│   └── profile_service.dart
+├── providers/                  # State management
+│   ├── auth_provider.dart
+│   └── profile_provider.dart
+├── screens/                    # Full-page screens
+│   ├── auth/
+│   ├── profile/
+│   └── home_screen.dart
+├── widgets/                    # Reusable components
+│   ├── common/
+│   └── bottom_nav_bar.dart
+└── utils/                      # Helper functions
+    ├── theme.dart
+    └── validators.dart
+```
+
+### Naming Conventions
+
+#### Files
+- snake_case: `user_profile_screen.dart`
+- Suffix by type: `*_screen.dart`, `*_service.dart`, `*_provider.dart`
+
+#### Classes
+- PascalCase: `UserProfileScreen`
+- Descriptive: `AuthenticationService`, not `AuthServ`
+
+#### Variables
+- camelCase: `isLoading`, `userProfile`
+- Private: `_user`, `_isAuthenticated`
+
+## Performance Optimization
+
+### Best Practices
+
+1. **Use const constructors** where possible
+```dart
+const Text('Hello')  // Better than Text('Hello')
+```
+
+2. **Minimize rebuilds**
+```dart
+// Bad: Rebuilds entire tree
+return Provider.of<AuthProvider>(context).isLoading 
+    ? LoadingIndicator() 
+    : Content();
+
+// Good: Only rebuilds consumer
+return Consumer<AuthProvider>(
+  builder: (context, auth, _) => auth.isLoading 
+      ? LoadingIndicator() 
+      : Content(),
+);
+```
+
+3. **Cache images and data**
+```dart
+CachedNetworkImage(imageUrl: url)  // Better than Image.network(url)
+```
+
+4. **Use ListView.builder for long lists**
+```dart
+ListView.builder(
+  itemCount: items.length,
+  itemBuilder: (context, index) => ItemWidget(items[index]),
+)
+```
+
+## Security Considerations
+
+### Token Storage
+- ✅ Use `shared_preferences` for JWT tokens
+- ✅ Clear tokens on logout
+- ✅ Validate token expiration
+- ❌ Never log tokens to console
+
+### API Communication
+- ✅ Use HTTPS in production
+- ✅ Validate SSL certificates
+- ✅ Handle token refresh
+- ❌ Never store passwords locally
+
+### Input Validation
+- ✅ Validate on frontend AND backend
+- ✅ Sanitize user inputs
+- ✅ Show clear error messages
+- ❌ Never trust client-side validation alone
+
+## iOS-Specific Considerations
+
+### Build Modes
+
+#### Debug Mode
+- Slower performance
+- Larger app size
+- Hot reload enabled
+- Debugging symbols included
+- **Requires** provisioning profile for physical devices
+
+#### Release Mode
+- Optimized performance
+- Smaller app size
+- No hot reload
+- No debugging symbols
+- **Recommended** for physical device testing
+
+```bash
+# Debug (requires proper provisioning)
+flutter run -d <device-id>
+
+# Release (works with free Apple ID)
+flutter run --release -d <device-id>
+```
+
+### Code Signing
+- Free Apple ID: 7-day certificate, limited to 3 devices
+- Paid Developer Account: 1-year certificate, 100 devices
+- Always use unique Bundle Identifier
+- Automatic signing recommended for development
+
+### Info.plist Configuration
+Common permissions in `ios/Runner/Info.plist`:
+```xml
+<!-- Camera access -->
+<key>NSCameraUsageDescription</key>
+<string>We need camera access for eco-activity photos</string>
+
+<!-- Location access -->
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>We need your location to find nearby recycling points</string>
+```
+
+## Troubleshooting Checklist
+
+### App Not Running
+- [ ] Backend is running (`docker ps`)
+- [ ] Using correct IP address in constants.dart
+- [ ] Device is connected and trusted
+- [ ] Developer mode enabled on iOS device
+- [ ] Code signing configured in Xcode
+
+### Network Errors
+- [ ] Backend accessible from IP (not just localhost)
+- [ ] CORS configured correctly
+- [ ] Firewall allowing connections
+- [ ] Using http:// not https:// for local dev
+
+### Build Errors
+- [ ] Run `flutter clean`
+- [ ] Run `flutter pub get`
+- [ ] Run `pod install` in ios/ directory
+- [ ] Check Xcode for signing issues
+
+### Runtime Errors
+- [ ] Check Flutter logs: `flutter logs`
+- [ ] Check backend logs: `docker-compose logs backend`
+- [ ] Verify API responses with curl
+- [ ] Check for error messages in UI
+
+## Quick Reference
+
+### Essential Commands
+```bash
+# Find Mac IP
+ifconfig | grep "inet " | grep -v 127.0.0.1 | head -1
+
+# Run on simulator
+flutter run
+
+# Run on device (release mode)
+flutter run --release -d <device-id>
+
+# Check devices
+flutter devices
+
+# Kill flutter processes
+pkill -f "flutter run"
+
+# Clean build
+flutter clean && flutter pub get
+
+# iOS pods
+cd ios && pod install
+```
+
+### Common IP Ranges
+- `192.168.x.x` - Home/small office WiFi
+- `10.x.x.x` - Corporate/institutional networks
+- `172.16.x.x - 172.31.x.x` - Private networks

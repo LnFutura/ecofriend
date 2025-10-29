@@ -1,0 +1,282 @@
+---
+description: Testing procedures and guidelines for backend API and frontend mobile app
+---
+
+# Testing Guide for EcoDrug
+
+## Testing Strategy
+
+### Three-Tier Testing Approach
+1. **Backend API Tests** - Verify endpoints work correctly
+2. **Frontend Manual Tests** - User flow on device/simulator
+3. **Integration Tests** - End-to-end user scenarios
+
+## Backend API Testing
+
+### Using cURL
+
+#### Health Check
+```bash
+curl -s http://localhost:5000/api/health | python3 -m json.tool
+```
+
+#### Registration
+```bash
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "username": "testuser",
+    "password": "test123"
+  }' | python3 -m json.tool
+```
+
+#### Login
+```bash
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "test123"
+  }' | python3 -m json.tool
+```
+
+#### Get Profile (Authenticated)
+```bash
+# Save token from login
+TOKEN="your-jwt-token-here"
+
+curl -s http://localhost:5000/api/profile/me \
+  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
+```
+
+### Test Checklist - Backend
+
+- [ ] Health endpoint returns 200 OK
+- [ ] Registration creates user and returns JWT token
+- [ ] Registration validates required fields
+- [ ] Registration prevents duplicate emails
+- [ ] Login returns JWT token for valid credentials
+- [ ] Login rejects invalid credentials
+- [ ] Protected routes require valid JWT
+- [ ] Protected routes reject invalid/expired tokens
+- [ ] Profile endpoints return correct user data
+- [ ] CORS allows frontend origin
+- [ ] MongoDB connection is stable
+- [ ] Passwords are hashed (never returned in responses)
+
+## Frontend Mobile Testing
+
+### Prerequisites
+- Backend must be running
+- Use Mac IP address (not localhost) in [frontend/lib/config/constants.dart](mdc:frontend/lib/config/constants.dart)
+- App deployed to simulator or physical device
+
+### Test Scenarios
+
+#### 1. App Launch
+- [ ] App opens without crashes
+- [ ] Login screen displays correctly
+- [ ] All UI elements are visible
+- [ ] Green theme is applied
+
+#### 2. User Registration
+**Steps**:
+1. Tap "Зарегистрироваться"
+2. Fill form:
+   - Email: `test@example.com`
+   - Username: `testuser`
+   - Password: `test123`
+   - Confirm: `test123`
+3. Tap "Зарегистрироваться"
+
+**Expected**:
+- [ ] Form validates all fields
+- [ ] Loading indicator appears
+- [ ] Success: Navigate to profile/home screen
+- [ ] Error: Show error message
+
+#### 3. User Login
+**Steps**:
+1. Enter credentials
+2. Tap "Войти"
+
+**Expected**:
+- [ ] Validates required fields
+- [ ] Shows loading indicator
+- [ ] Success: Navigate to home
+- [ ] Error: Display error message
+- [ ] Token saved in storage
+
+#### 4. Profile Screen
+**Steps**:
+1. Login
+2. Navigate to Profile
+
+**Expected**:
+- [ ] Displays user information
+- [ ] Shows eco points (0 for new users)
+- [ ] Shows achievements section
+- [ ] Logout button works
+
+#### 5. Navigation
+- [ ] Bottom navigation bar works
+- [ ] All tabs are accessible
+- [ ] Back button navigation works
+- [ ] App maintains state across navigation
+
+### Common Issues to Test
+
+#### Network Issues
+- [ ] App handles no internet connection gracefully
+- [ ] Shows meaningful error messages
+- [ ] Retry mechanism works
+
+#### Authentication
+- [ ] Token persists after app restart
+- [ ] Auto-login works if token valid
+- [ ] Logout clears token
+- [ ] Expired token redirects to login
+
+#### UI/UX
+- [ ] Forms validate inputs
+- [ ] Loading states are clear
+- [ ] Error messages are user-friendly
+- [ ] Keyboard doesn't overlap inputs
+- [ ] Scrolling works properly
+
+## Integration Testing
+
+### End-to-End User Flow
+
+#### Complete User Journey
+1. **Fresh Install**
+   - [ ] App opens to login screen
+   - [ ] No crash on first launch
+
+2. **Registration → Profile**
+   - [ ] Register new user
+   - [ ] Auto-navigate to profile
+   - [ ] Profile shows correct data
+   - [ ] Logout works
+
+3. **Login → App Usage**
+   - [ ] Login with credentials
+   - [ ] Navigate between screens
+   - [ ] Data persists
+   - [ ] Logout and re-login works
+
+4. **Data Consistency**
+   - [ ] Backend and frontend data match
+   - [ ] Profile updates reflect in API
+   - [ ] Leaderboard shows correct rankings
+
+## Testing Tools
+
+### Backend
+```bash
+# Test script for backend
+cd /Users/vladimir/Projects/ecodrug/backend
+
+# Health check
+curl -s http://localhost:5000/api/health
+
+# Create test user
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@test.com", "username": "tester", "password": "test123"}'
+```
+
+### Frontend
+```bash
+# Run on simulator
+cd /Users/vladimir/Projects/ecodrug/frontend
+flutter run -d <simulator-id>
+
+# Run on physical device (release mode)
+flutter run --release -d <device-id>
+```
+
+### Docker Environment
+```bash
+# Start backend + MongoDB
+docker-compose up -d
+
+# Check status
+docker ps
+
+# View logs
+docker-compose logs -f backend
+```
+
+## Test Data
+
+### Sample Users
+```json
+[
+  {
+    "email": "test@ecodrug.ru",
+    "username": "testuser",
+    "password": "123456"
+  },
+  {
+    "email": "vlad@ecodrug.ru",
+    "username": "vladimir",
+    "password": "test123"
+  }
+]
+```
+
+### Test Endpoints
+- Health: `GET /api/health`
+- Register: `POST /api/auth/register`
+- Login: `POST /api/auth/login`
+- Profile: `GET /api/profile/me`
+- Leaderboard: `GET /api/profile/leaderboard`
+
+## Debugging Failed Tests
+
+### Backend Issues
+1. Check logs: `docker-compose logs backend`
+2. Verify MongoDB: `docker-compose logs mongodb`
+3. Test connection: `curl http://localhost:5000/api/health`
+4. Check CORS configuration
+
+### Frontend Issues
+1. Check Flutter logs: `flutter logs`
+2. Verify API URL in constants.dart
+3. Test backend directly with cURL
+4. Check network connectivity (use IP, not localhost)
+5. Verify JWT token is being sent
+
+### Common Errors
+
+#### ClientException
+- **Cause**: Cannot reach backend
+- **Fix**: Use Mac IP instead of localhost
+
+#### 401 Unauthorized
+- **Cause**: Missing or invalid token
+- **Fix**: Check JWT in headers, verify token not expired
+
+#### 404 Not Found
+- **Cause**: Wrong endpoint URL
+- **Fix**: Verify API routes match backend
+
+#### Connection Refused
+- **Cause**: Backend not running
+- **Fix**: Start Docker containers
+
+## Best Practices
+
+1. **Always test backend first** - Ensure APIs work before testing frontend
+2. **Use release mode on physical devices** - Better performance and stability
+3. **Test with fresh data** - Create new test users for each test cycle
+4. **Document failures** - Note errors in test plan for tracking
+5. **Test on multiple devices** - Simulator AND physical device
+6. **Verify data in MongoDB** - Use MongoDB Compass or CLI to check data
+7. **Keep test credentials separate** - Don't use production data
+
+## Test Plan Template
+
+See [TEST_PLAN.md](mdc:TEST_PLAN.md) for detailed test scenarios and results tracking.

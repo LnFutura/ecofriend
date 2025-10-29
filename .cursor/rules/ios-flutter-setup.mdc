@@ -1,0 +1,187 @@
+---
+description: iOS and Flutter development setup, troubleshooting, and common issues
+---
+
+# iOS & Flutter Development Setup
+
+## Prerequisites
+
+### Required Software
+- **Xcode**: Latest version from App Store
+- **Flutter SDK**: Installed in `$HOME/flutter`
+- **CocoaPods**: Install via Homebrew (`brew install cocoapods`)
+- **Rosetta** (Apple Silicon Macs): Required for iOS development
+  ```bash
+  sudo softwareupdate --install-rosetta --agree-to-license
+  ```
+
+### Flutter Setup
+```bash
+# Add to PATH
+export PATH="$HOME/flutter/bin:$PATH"
+
+# Precache iOS artifacts
+flutter precache --ios
+
+# Check setup
+flutter doctor
+```
+
+## iOS Device Development
+
+### Code Signing (CRITICAL)
+1. Open project in Xcode: `ios/Runner.xcworkspace`
+2. Select Runner target → Signing & Capabilities
+3. Enable "Automatically manage signing"
+4. Select your Team (Apple ID)
+5. Set unique Bundle Identifier (e.g., `com.yourname.ecodrug`)
+
+### Physical Device Setup
+1. **Connect iPhone via USB**
+2. **Trust computer** on iPhone when prompted
+3. **Enable Developer Mode** on iPhone:
+   - Settings → Privacy & Security → Developer Mode → Enable
+   - Restart iPhone
+4. **Pair device in Xcode**:
+   - Window → Devices and Simulators
+   - Wait for device to appear as "Connected"
+
+### Running on iPhone
+```bash
+# List devices
+flutter devices
+
+# Run in release mode (recommended for physical devices)
+flutter run --release -d <device-id>
+
+# Debug mode (requires proper provisioning)
+flutter run -d <device-id>
+```
+
+## Common Issues & Solutions
+
+### 1. ClientException / Network Errors
+**Problem**: iPhone can't connect to `localhost` backend
+
+**Solution**: Use Mac's IP address instead of localhost
+```bash
+# Find Mac IP
+ifconfig | grep "inet " | grep -v 127.0.0.1
+
+# Update frontend/lib/config/constants.dart
+static const String apiBaseUrl = 'http://YOUR_MAC_IP:5000/api';
+```
+
+### 2. "Binary built with incorrect architecture"
+**Problem**: Missing Rosetta on Apple Silicon
+
+**Solution**:
+```bash
+sudo softwareupdate --install-rosetta --agree-to-license
+```
+
+### 3. "Flutter.xcframework must exist"
+**Problem**: Missing iOS precache
+
+**Solution**:
+```bash
+flutter precache --ios
+cd ios && pod install
+```
+
+### 4. CocoaPods Unicode Error
+**Problem**: Encoding compatibility error
+
+**Solution**:
+```bash
+export LANG=en_US.UTF-8
+cd ios && pod install
+```
+
+### 5. Code Signing Failed
+**Problem**: No development certificate or provisioning profile
+
+**Solution**:
+- Open Xcode → Signing & Capabilities
+- Enable "Automatically manage signing"
+- Ensure unique Bundle Identifier
+- Log in with Apple ID in Xcode Preferences
+- Clean build folder: Product → Clean Build Folder
+- Rebuild
+
+### 6. Device Unpaired
+**Problem**: `iPhone is not available because it is unpaired`
+
+**Solution**:
+- Xcode → Window → Devices and Simulators
+- Click "Pair" next to your device
+- Enter passcode on iPhone if prompted
+
+### 7. App Crashes on Launch (Physical Device)
+**Problem**: Untrusted developer
+
+**Solution** (on iPhone):
+1. Settings → General → VPN & Device Management
+2. Find your developer profile
+3. Tap "Trust"
+
+## Best Practices
+
+### Development Workflow
+1. **Use Simulator for rapid development** - faster compile times
+2. **Test on Physical Device periodically** - verify real-world behavior
+3. **Always use Release mode on device** - better performance, fewer issues
+4. **Kill Flutter processes** before restarting: `pkill -f "flutter run"`
+
+### Network Configuration
+- **Development**: Use Mac IP address for backend
+- **Production**: Use proper domain with HTTPS
+- **Never hardcode IPs** - use environment variables or constants
+
+### Debugging
+- Check logs: `flutter logs`
+- Monitor terminal output during `flutter run`
+- Use Xcode for native iOS issues
+- Check backend logs for API errors
+
+## Quick Reference Commands
+
+```bash
+# Setup
+flutter precache --ios
+cd ios && pod install
+
+# Run on simulator
+open -a Simulator
+flutter run -d <simulator-id>
+
+# Run on device (release mode)
+flutter run --release -d <device-id>
+
+# Clean and rebuild
+flutter clean
+flutter pub get
+cd ios && pod install
+
+# Check devices
+flutter devices
+
+# Check doctor
+flutter doctor -v
+
+# Kill all flutter processes
+pkill -f "flutter run"
+```
+
+## Environment Variables
+
+Create [frontend/.env](mdc:frontend/.env) for configuration:
+```
+API_URL=http://YOUR_MAC_IP:5000/api
+```
+
+Use in code:
+```dart
+static const String apiBaseUrl = 
+    String.fromEnvironment('API_URL', defaultValue: 'http://10.181.101.216:5000/api');
+```

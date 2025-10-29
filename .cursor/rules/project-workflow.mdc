@@ -1,0 +1,412 @@
+---
+description: Project development workflow, phase management, and task organization
+---
+
+# EcoDrug Project Workflow
+
+## Development Phases
+
+The project is developed in structured phases to ensure quality and maintainability.
+
+### Phase 1: Backend Foundation (✅ COMPLETED)
+**Goal**: Basic backend infrastructure with authentication
+
+**Deliverables**:
+- ✅ Node.js + Express server setup
+- ✅ MongoDB connection configured
+- ✅ User and Profile models created
+- ✅ JWT authentication implemented
+- ✅ Auth endpoints (register, login)
+- ✅ Profile endpoints (CRUD operations)
+- ✅ Middleware (auth, validation, error handling)
+- ✅ Docker configuration
+
+**Files Created**:
+- [backend/server.js](mdc:backend/server.js)
+- [backend/config/db.js](mdc:backend/config/db.js)
+- [backend/models/User.js](mdc:backend/models/User.js)
+- [backend/models/Profile.js](mdc:backend/models/Profile.js)
+- [backend/controllers/authController.js](mdc:backend/controllers/authController.js)
+- [backend/controllers/profileController.js](mdc:backend/controllers/profileController.js)
+- [backend/middleware/*](mdc:backend/middleware/)
+- [docker-compose.yml](mdc:docker-compose.yml)
+
+### Phase 2: Frontend Foundation (✅ COMPLETED)
+**Goal**: Flutter app with authentication screens
+
+**Deliverables**:
+- ✅ Flutter project initialized
+- ✅ User and Profile models in Dart
+- ✅ API services (auth, profile)
+- ✅ State management with Provider
+- ✅ Login screen
+- ✅ Registration screen
+- ✅ Profile screen
+- ✅ Home screen with navigation
+- ✅ Reusable widgets (buttons, text fields, loading indicators)
+- ✅ iOS development setup (Xcode, CocoaPods, code signing)
+- ✅ Network configuration for mobile devices
+
+**Files Created**:
+- [frontend/lib/main.dart](mdc:frontend/lib/main.dart)
+- [frontend/lib/models/*](mdc:frontend/lib/models/)
+- [frontend/lib/services/*](mdc:frontend/lib/services/)
+- [frontend/lib/providers/auth_provider.dart](mdc:frontend/lib/providers/auth_provider.dart)
+- [frontend/lib/screens/auth/*](mdc:frontend/lib/screens/auth/)
+- [frontend/lib/widgets/*](mdc:frontend/lib/widgets/)
+
+**Testing**:
+- ✅ Backend API tested with cURL
+- ✅ App runs on iPhone simulator
+- ✅ App runs on physical iPhone
+- ✅ Registration and login flows work
+- ⚠️ Profile endpoint needs Achievement model (Phase 3)
+
+### Phase 3: Core Modules (NEXT)
+**Goal**: Implement main application features
+
+**Modules to Implement**:
+1. **Education Module**
+   - Article model and endpoints
+   - Course model and endpoints
+   - Video model and endpoints
+   - Quiz/Test model and endpoints
+   - Frontend screens for browsing and learning
+
+2. **News Module**
+   - News model with moderation status
+   - CRUD endpoints with admin controls
+   - News feed screen
+   - Category filtering
+   - Moderation workflow
+
+3. **Events Module**
+   - Event model
+   - Event calendar
+   - Event registration
+   - Event detail screens
+
+4. **Map Module**
+   - RecyclingPoint model
+   - Map integration (flutter_map)
+   - Point filtering
+   - Point details
+
+5. **Gamification Module**
+   - Achievement model
+   - User progress tracking
+   - Points system
+   - Leaderboard enhancements
+   - Badge display
+
+**Priority Order**:
+1. Achievement model (fixes Profile endpoint)
+2. Education module (core value proposition)
+3. News module (engagement)
+4. Events module (community building)
+5. Map module (utility feature)
+6. Gamification (retention)
+
+### Phase 4: Advanced Features
+**Goal**: Polish and enhancement
+
+**Features**:
+- Notifications system
+- Support/Donations module
+- Organization profiles
+- Admin panel
+- Content moderation tools
+- Search functionality
+- Push notifications
+
+### Phase 5: Production Ready
+**Goal**: Deploy and launch
+
+**Tasks**:
+- Production environment setup
+- MongoDB Atlas configuration
+- HTTPS/SSL certificates
+- Domain configuration
+- App Store submission
+- User onboarding
+- Analytics integration
+- Error tracking (Sentry)
+
+## Workflow Guidelines
+
+### Starting a New Phase
+
+1. **Review previous phase** - Ensure all deliverables complete
+2. **Test thoroughly** - Run manual and automated tests
+3. **Document issues** - Update [TEST_PLAN.md](mdc:TEST_PLAN.md)
+4. **Plan next phase** - List specific tasks and priorities
+5. **Commit changes** - Clean git history
+
+### During Development
+
+#### Backend First Approach
+1. Create MongoDB model
+2. Implement controller logic
+3. Add API routes
+4. Test with cURL
+5. Document API endpoints
+
+#### Frontend Second
+1. Create Dart model
+2. Implement service layer
+3. Create provider for state
+4. Build UI screens
+5. Test on device
+
+#### Iterative Testing
+- Test backend after each endpoint
+- Test frontend after each screen
+- Integration test after each module
+- Document test results
+
+### Code Review Checklist
+
+#### Backend
+- [ ] Model has proper schema validation
+- [ ] Controller handles errors gracefully
+- [ ] Routes have authentication middleware
+- [ ] Input validation is implemented
+- [ ] Passwords are hashed
+- [ ] JWT tokens are verified
+- [ ] CORS is configured
+- [ ] API returns consistent response format
+
+#### Frontend
+- [ ] Model has JSON serialization
+- [ ] Service handles network errors
+- [ ] Provider manages state correctly
+- [ ] UI shows loading states
+- [ ] Error messages are user-friendly
+- [ ] Forms validate inputs
+- [ ] Navigation works correctly
+- [ ] Theme is applied consistently
+
+### Git Workflow
+
+#### Commit Messages
+```
+feat: Add news module with CRUD endpoints
+fix: Resolve ClientException on iPhone
+test: Add integration tests for auth flow
+docs: Update API documentation
+refactor: Improve error handling in services
+```
+
+#### Branch Strategy
+```
+main - Production ready code
+develop - Integration branch
+feature/* - New features
+fix/* - Bug fixes
+```
+
+### Testing Strategy
+
+#### Per Phase Testing
+After completing each phase:
+1. **Unit Tests** - Test individual functions
+2. **API Tests** - Test all endpoints with cURL
+3. **UI Tests** - Manual testing on simulator
+4. **Device Tests** - Test on physical iPhone
+5. **Integration Tests** - End-to-end user flows
+
+#### Test Documentation
+Use [TEST_PLAN.md](mdc:TEST_PLAN.md) to track:
+- Test scenarios
+- Expected results
+- Actual results
+- Issues found
+- Resolutions
+
+## Common Workflows
+
+### Adding a New Model
+
+#### Backend
+```bash
+cd backend
+
+# 1. Create model
+touch models/Article.js
+
+# 2. Create controller
+touch controllers/articleController.js
+
+# 3. Create routes
+touch routes/article.js
+
+# 4. Register routes in server.js
+# 5. Test with cURL
+```
+
+#### Frontend
+```bash
+cd frontend
+
+# 1. Create model
+touch lib/models/article.dart
+
+# 2. Create service
+touch lib/services/article_service.dart
+
+# 3. Create provider
+touch lib/providers/article_provider.dart
+
+# 4. Create screens
+mkdir -p lib/screens/articles
+touch lib/screens/articles/article_list_screen.dart
+touch lib/screens/articles/article_detail_screen.dart
+
+# 5. Add routes and test
+```
+
+### Fixing a Bug
+
+1. **Reproduce** - Understand the issue
+2. **Locate** - Find the problematic code
+3. **Fix** - Implement the solution
+4. **Test** - Verify the fix works
+5. **Document** - Update comments/docs
+6. **Commit** - Clear commit message
+
+### Adding a Feature
+
+1. **Plan** - Define requirements and scope
+2. **Design** - Sketch UI and data flow
+3. **Implement Backend** - Models, controllers, routes
+4. **Test Backend** - cURL tests
+5. **Implement Frontend** - Models, services, providers, screens
+6. **Test Frontend** - Simulator and device
+7. **Integration Test** - End-to-end flow
+8. **Document** - Update README and docs
+9. **Commit** - Feature branch and merge
+
+## Development Environment
+
+### Prerequisites
+- [x] Docker installed
+- [x] Flutter SDK installed
+- [x] Xcode installed (macOS)
+- [x] Node.js installed
+- [x] MongoDB running (via Docker)
+
+### Starting Development Session
+
+```bash
+# 1. Start backend
+cd /Users/vladimir/Projects/ecodrug
+docker-compose up -d
+
+# 2. Verify backend
+curl http://localhost:5000/api/health
+
+# 3. Start frontend
+cd frontend
+
+# For web development
+flutter run -d chrome
+
+# For iOS simulator
+open -a Simulator
+flutter run -d <simulator-id>
+
+# For physical iPhone (release mode)
+flutter run --release -d <device-id>
+```
+
+### Stopping Development Session
+
+```bash
+# Stop Flutter
+pkill -f "flutter run"
+
+# Stop Docker
+docker-compose down
+
+# Keep data, stop services
+docker-compose stop
+```
+
+## Troubleshooting During Development
+
+### Backend Issues
+- Check logs: `docker-compose logs backend`
+- Check MongoDB: `docker-compose logs mongodb`
+- Restart: `docker-compose restart backend`
+- Rebuild: `docker-compose up -d --build backend`
+
+### Frontend Issues
+- Clean build: `flutter clean && flutter pub get`
+- Restart app: Kill and relaunch
+- Check logs: `flutter logs`
+- Verify API URL in constants.dart
+
+### Network Issues
+- Verify IP address is current
+- Test with cURL: `curl http://YOUR_IP:5000/api/health`
+- Check CORS configuration
+- Check firewall settings
+
+## Best Practices
+
+### Code Quality
+1. **Follow naming conventions** - Consistent naming
+2. **Write comments** - Explain complex logic
+3. **Handle errors** - Never ignore exceptions
+4. **Validate inputs** - Frontend AND backend
+5. **Keep functions small** - Single responsibility
+6. **Use TypeScript/Dart types** - Type safety
+
+### Security
+1. **Never commit secrets** - Use .env files
+2. **Hash passwords** - Always use bcrypt
+3. **Verify JWT tokens** - On every protected route
+4. **Sanitize inputs** - Prevent injection attacks
+5. **Use HTTPS** - In production
+6. **Implement rate limiting** - Prevent abuse
+
+### Performance
+1. **Use indexes** - MongoDB queries
+2. **Cache data** - Reduce API calls
+3. **Optimize images** - Compress and cache
+4. **Minimize rebuilds** - Flutter optimization
+5. **Lazy load** - Load data as needed
+
+### Documentation
+1. **Update README** - Keep instructions current
+2. **Document APIs** - Clear endpoint documentation
+3. **Comment complex code** - Help future developers
+4. **Track TODOs** - Use TODO comments and tracking
+5. **Maintain test plans** - Document test scenarios
+
+## Project Resources
+
+### Key Files
+- [README.md](mdc:README.md) - Project overview and setup
+- [TEST_PLAN.md](mdc:TEST_PLAN.md) - Testing scenarios and results
+- [.cursor/rules/data-models.mdc](mdc:.cursor/rules/data-models.mdc) - All data models
+- [.cursor/rules/api-design.mdc](mdc:.cursor/rules/api-design.mdc) - API conventions
+- [backend/package.json](mdc:backend/package.json) - Backend dependencies
+- [frontend/pubspec.yaml](mdc:frontend/pubspec.yaml) - Frontend dependencies
+
+### External Documentation
+- Flutter: https://docs.flutter.dev/
+- Express: https://expressjs.com/
+- MongoDB: https://www.mongodb.com/docs/
+- Mongoose: https://mongoosejs.com/docs/
+
+## Phase Transition Checklist
+
+Before moving to next phase:
+- [ ] All planned features implemented
+- [ ] All tests passing
+- [ ] No critical bugs
+- [ ] Documentation updated
+- [ ] Code reviewed
+- [ ] Git commits clean
+- [ ] Ready for integration
