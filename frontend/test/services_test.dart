@@ -12,13 +12,13 @@ void main() {
       const testToken = 'test_jwt_token_12345';
       
       await StorageService.saveToken(testToken);
-      final retrievedToken = await StorageService.getToken();
+      final retrievedToken = StorageService.getToken();
 
       expect(retrievedToken, testToken);
     });
 
     test('Should return null when no token exists', () async {
-      final token = await StorageService.getToken();
+      final token = StorageService.getToken();
       expect(token, isNull);
     });
 
@@ -27,7 +27,7 @@ void main() {
       
       await StorageService.saveToken(testToken);
       await StorageService.clearToken();
-      final token = await StorageService.getToken();
+      final token = StorageService.getToken();
 
       expect(token, isNull);
     });
@@ -36,7 +36,7 @@ void main() {
       const testUserId = 'user123';
       
       await StorageService.saveUserId(testUserId);
-      final retrievedUserId = await StorageService.getUserId();
+      final retrievedUserId = StorageService.getUserId();
 
       expect(retrievedUserId, testUserId);
     });
@@ -47,8 +47,8 @@ void main() {
       
       await StorageService.clearAll();
       
-      final token = await StorageService.getToken();
-      final userId = await StorageService.getUserId();
+      final token = StorageService.getToken();
+      final userId = StorageService.getUserId();
 
       expect(token, isNull);
       expect(userId, isNull);

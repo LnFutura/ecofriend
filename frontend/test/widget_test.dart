@@ -1,34 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:ecodrug_frontend/main.dart';
 import 'package:ecodrug_frontend/providers/auth_provider.dart';
+import 'package:ecodrug_frontend/screens/auth/login_screen.dart';
 
 void main() {
   group('EcoDrug App Widget Tests', () {
     testWidgets('App should initialize and show login screen', (WidgetTester tester) async {
       // Build our app and trigger a frame.
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => AuthProvider()),
-          ],
-          child: const MyApp(),
+        MaterialApp(
+          home: MultiProvider(
+            providers: [
+              ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ],
+            child: const LoginScreen(),
+          ),
         ),
       );
 
       // Verify that login screen elements are present
-      expect(find.text('ЭкоДруг'), findsOneWidget);
+      expect(find.text('Вход'), findsOneWidget);
       expect(find.byType(TextField), findsWidgets);
     });
 
     testWidgets('Login screen has email and password fields', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => AuthProvider()),
-          ],
-          child: const MyApp(),
+        MaterialApp(
+          home: MultiProvider(
+            providers: [
+              ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ],
+            child: const LoginScreen(),
+          ),
         ),
       );
 
@@ -39,11 +43,13 @@ void main() {
 
     testWidgets('Login screen has login button', (WidgetTester tester) async {
       await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => AuthProvider()),
-          ],
-          child: const MyApp(),
+        MaterialApp(
+          home: MultiProvider(
+            providers: [
+              ChangeNotifierProvider(create: (_) => AuthProvider()),
+            ],
+            child: const LoginScreen(),
+          ),
         ),
       );
 

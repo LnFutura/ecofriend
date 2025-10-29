@@ -25,6 +25,11 @@ class StorageService {
     return await _prefs!.remove('auth_token');
   }
 
+  // Alias for removeToken (for backward compatibility)
+  static Future<bool> clearToken() async {
+    return await removeToken();
+  }
+
   // Save user ID
   static Future<bool> saveUserId(String userId) async {
     if (_prefs == null) await init();

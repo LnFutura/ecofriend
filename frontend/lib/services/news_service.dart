@@ -5,15 +5,17 @@ import '../models/news.dart';
 import 'storage_service.dart';
 
 class NewsService {
-  final StorageService _storage = StorageService();
-
   // Получить все новости
-  Future<List<News>> getNews({String? category}) async {
+  Future<List<News>> getNews({String? category, String? status}) async {
     try {
       String url = '${AppConstants.apiBaseUrl}/news';
       
-      if (category != null) {
-        url += '?category=$category';
+      final queryParams = <String, String>{};
+      if (category != null) queryParams['category'] = category;
+      if (status != null) queryParams['status'] = status;
+      
+      if (queryParams.isNotEmpty) {
+        url += '?${queryParams.entries.map((e) => '${e.key}=${e.value}').join('&')}';
       }
 
       final response = await http.get(
@@ -55,7 +57,7 @@ class NewsService {
   // Лайкнуть/убрать лайк
   Future<void> toggleLike(String newsId) async {
     try {
-      final token = await _storage.getToken();
+      final token = StorageService.getToken();
       if (token == null) throw Exception('Необходима авторизация');
 
       final response = await http.post(
@@ -77,7 +79,7 @@ class NewsService {
   // Добавить комментарий
   Future<void> addComment(String newsId, String text) async {
     try {
-      final token = await _storage.getToken();
+      final token = StorageService.getToken();
       if (token == null) throw Exception('Необходима авторизация');
 
       final response = await http.post(

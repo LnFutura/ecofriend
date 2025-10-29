@@ -41,6 +41,10 @@ class Event {
     required this.createdAt,
   });
 
+  // Алиасы для совместимости с тестами
+  int? get maxParticipants => capacity;
+  int get currentParticipants => registered.length;
+
   factory Event.fromJson(Map<String, dynamic> json) {
     return Event(
       id: json['_id'],

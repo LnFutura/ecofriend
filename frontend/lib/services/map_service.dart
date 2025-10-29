@@ -5,8 +5,6 @@ import '../models/recycling_point.dart';
 import 'storage_service.dart';
 
 class MapService {
-  final StorageService _storage = StorageService();
-
   // Получить все пункты
   Future<List<RecyclingPoint>> getAllPoints({String? city, String? type}) async {
     try {
@@ -89,7 +87,7 @@ class MapService {
   // Добавить отзыв
   Future<void> addReview(String pointId, int rating, String? comment) async {
     try {
-      final token = await _storage.getToken();
+      final token = StorageService.getToken();
       if (token == null) throw Exception('Необходима авторизация');
 
       final response = await http.post(

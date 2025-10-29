@@ -39,6 +39,9 @@ class Course {
     required this.createdAt,
   });
 
+  // Алиас для совместимости с тестами
+  String get difficulty => level;
+
   factory Course.fromJson(Map<String, dynamic> json) {
     return Course(
       id: json['_id'] ?? '',

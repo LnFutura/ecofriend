@@ -130,12 +130,12 @@ class AppTheme {
       ),
       
       // Card Theme
-      cardTheme: const CardThemeData(
+      cardTheme: CardTheme(
         elevation: 2,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
+          borderRadius: BorderRadius.circular(12),
         ),
-        margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       ),
       
       // Bottom Navigation Bar Theme
