@@ -69,6 +69,31 @@ class User {
 - Provide visual feedback for user actions
 - Use consistent spacing and colors throughout the app
 
+### IMPORTANT: Using AppTheme Colors
+**Use correct color names from AppTheme**:
+
+```dart
+// ❌ WRONG - AppTheme.primaryColor doesn't exist
+CircularProgressIndicator(
+  color: AppTheme.primaryColor, // Error!
+)
+
+// ✅ CORRECT - Use AppTheme.primaryGreen
+CircularProgressIndicator(
+  color: AppTheme.primaryGreen, // Correct!
+)
+```
+
+**Available colors in AppTheme**:
+- `AppTheme.primaryGreen` - Main brand color
+- `AppTheme.darkGreen` - Darker shade
+- `AppTheme.lightGreen` - Lighter shade
+- `AppTheme.accentOrange` - Accent color
+- `AppTheme.textDark` - Dark text
+- `AppTheme.textLight` - Light/gray text
+- `AppTheme.errorRed` - Error color
+- `AppTheme.successGreen` - Success color
+
 ## State Management with Provider
 - Wrap MaterialApp with MultiProvider
 - Use Consumer for reactive UI updates
@@ -81,6 +106,27 @@ class User {
 - Handle different HTTP status codes appropriately
 - Parse responses and handle errors gracefully
 - Show loading indicators during API calls
+
+### IMPORTANT: Using StorageService
+**StorageService uses STATIC methods**, not instance methods:
+
+```dart
+// ❌ WRONG - Don't create instances
+class MyService {
+  final StorageService _storage = StorageService(); // NO!
+  
+  Future<void> myMethod() async {
+    final token = await _storage.getToken(); // Error!
+  }
+}
+
+// ✅ CORRECT - Use static methods directly
+class MyService {
+  Future<void> myMethod() async {
+    final token = StorageService.getToken(); // Correct!
+  }
+}
+```
 
 ## Flutter Web Specific
 - Use shared_preferences for token storage (web-compatible)

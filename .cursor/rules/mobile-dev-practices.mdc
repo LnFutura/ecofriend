@@ -26,15 +26,37 @@ ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}' | head -1
 #### Configuration in Flutter
 Update [frontend/lib/config/constants.dart](mdc:frontend/lib/config/constants.dart):
 
+**ВАЖНО: Разные URL для Web и Mobile!**
+
 ```dart
 class AppConstants {
-  // Development: Use Mac's IP address
-  // Production: Use domain name
+  // ✅ ПРАВИЛЬНО: localhost для web, IP адрес для mobile через env variable
   static const String apiBaseUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'http://10.181.101.216:5000/api', // Replace with your Mac IP
+    defaultValue: 'http://localhost:5000/api', // localhost для web в браузере
   );
 }
+```
+
+**Запуск на разных платформах:**
+```bash
+# Web (Chrome) - использует localhost по умолчанию
+flutter run -d chrome --web-port 8080
+
+# iPhone/Physical device - передаём IP адрес через environment
+flutter run -d <device_id> --dart-define=API_URL=http://10.181.101.216:5000/api
+
+# Android - передаём IP адрес
+flutter run -d <device_id> --dart-define=API_URL=http://10.181.101.216:5000/api
+```
+
+**❌ НЕПРАВИЛЬНО - использовать IP адрес как default:**
+```dart
+// Это не будет работать в браузере на том же Mac!
+static const String apiBaseUrl = String.fromEnvironment(
+  'API_URL',
+  defaultValue: 'http://10.181.101.216:5000/api', // ❌ Ошибка при логине в browser
+);
 ```
 
 #### Backend CORS Configuration

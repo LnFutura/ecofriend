@@ -15,7 +15,11 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:8080',  // Flutter Web
+    process.env.CLIENT_URL
+  ].filter(Boolean),
   credentials: true,
 }));
 app.use(express.json());
@@ -32,6 +36,12 @@ if (process.env.NODE_ENV === 'development') {
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/profile', require('./routes/profile'));
+app.use('/api/achievements', require('./routes/achievement'));
+app.use('/api/challenges', require('./routes/challenge'));
+app.use('/api/education', require('./routes/education'));
+app.use('/api/news', require('./routes/news'));
+app.use('/api/events', require('./routes/event'));
+app.use('/api/recycling-points', require('./routes/recycling'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

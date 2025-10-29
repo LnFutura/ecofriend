@@ -1,8 +1,8 @@
 class AppConstants {
   // API Configuration
-  // Используем IP адрес Mac для доступа с iPhone
+  // Для web используем localhost, для мобильных - IP адрес Mac
   static const String apiBaseUrl = 
-      String.fromEnvironment('API_URL', defaultValue: 'http://10.181.101.216:5000/api');
+      String.fromEnvironment('API_URL', defaultValue: 'http://localhost:5000/api');
   
   // Storage Keys
   static const String tokenKey = 'auth_token';

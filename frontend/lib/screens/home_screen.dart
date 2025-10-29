@@ -169,7 +169,7 @@ class _DashboardScreen extends StatelessWidget {
                     title: 'Пройти курс',
                     subtitle: 'Образовательные материалы',
                     onTap: () {
-                      // TODO: Navigate to courses
+                      Navigator.pushNamed(context, '/courses');
                     },
                   ),
                   const SizedBox(height: 8),
