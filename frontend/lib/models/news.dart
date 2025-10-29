@@ -35,15 +35,19 @@ class News {
 
   factory News.fromJson(Map<String, dynamic> json) {
     return News(
-      id: json['_id'],
-      title: json['title'],
-      content: json['content'],
+      id: json['_id'] ?? '',
+      title: json['title'] ?? '',
+      content: json['content'] ?? '',
       excerpt: json['excerpt'],
       thumbnail: json['thumbnail'],
-      category: json['category'],
+      category: json['category'] ?? '',
       tags: List<String>.from(json['tags'] ?? []),
-      authorId: json['author'] is String ? json['author'] : json['author']['_id'],
-      authorName: json['author'] is Map ? json['author']['username'] : null,
+      authorId: json['author'] != null
+          ? (json['author'] is String ? json['author'] : json['author']['_id'] ?? '')
+          : '',
+      authorName: json['author'] != null && json['author'] is Map
+          ? json['author']['username']
+          : null,
       status: json['status'] ?? 'pending',
       publishedAt: json['publishedAt'] != null 
           ? DateTime.parse(json['publishedAt']) 
@@ -53,7 +57,7 @@ class News {
       comments: (json['comments'] as List?)
           ?.map((c) => NewsComment.fromJson(c))
           .toList() ?? [],
-      createdAt: DateTime.parse(json['createdAt']),
+      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
     );
   }
 
@@ -77,10 +81,14 @@ class NewsComment {
 
   factory NewsComment.fromJson(Map<String, dynamic> json) {
     return NewsComment(
-      userId: json['user'] is String ? json['user'] : json['user']['_id'],
-      username: json['user'] is Map ? json['user']['username'] : null,
-      text: json['text'],
-      createdAt: DateTime.parse(json['createdAt']),
+      userId: json['user'] != null
+          ? (json['user'] is String ? json['user'] : json['user']['_id'] ?? '')
+          : '',
+      username: json['user'] != null && json['user'] is Map
+          ? json['user']['username']
+          : null,
+      text: json['text'] ?? '',
+      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
     );
   }
 }

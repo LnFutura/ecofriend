@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/bottom_nav_bar.dart';
 import 'profile/profile_screen.dart';
+import 'news/news_feed_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,10 +15,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  // Placeholder screens for navigation
+  // Screens for navigation
   final List<Widget> _screens = [
     const _DashboardScreen(),
-    const _NewsPlaceholderScreen(),
+    const NewsFeedScreen(),
     const _EventsPlaceholderScreen(),
     const _MapPlaceholderScreen(),
     const ProfileScreen(),
@@ -265,21 +266,7 @@ class _ActionButton extends StatelessWidget {
 }
 
 // Placeholder screens
-class _NewsPlaceholderScreen extends StatelessWidget {
-  const _NewsPlaceholderScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Новости')),
-      body: const Center(
-        child: Text('Экран новостей (Фаза 4)'),
-      ),
-    );
-  }
-}
-
-class _EventsPlaceholderScreen extends StatelessWidget {
+class _EventsPlaceholderScreen extends StatelessWidget{
   const _EventsPlaceholderScreen();
 
   @override

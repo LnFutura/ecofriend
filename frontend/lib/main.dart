@@ -3,10 +3,13 @@ import 'package:provider/provider.dart';
 import 'config/constants.dart';
 import 'providers/auth_provider.dart';
 import 'providers/education_provider.dart';
+import 'providers/news_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/courses/courses_screen.dart';
+import 'screens/news/news_feed_screen.dart';
+import 'screens/news/news_detail_screen.dart';
 import 'services/storage_service.dart';
 import 'utils/theme.dart';
 
@@ -28,6 +31,7 @@ class EcoDrugApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()..init()),
         ChangeNotifierProvider(create: (_) => EducationProvider()),
+        ChangeNotifierProvider(create: (_) => NewsProvider()),
       ],
       child: MaterialApp(
         title: AppConstants.appName,
@@ -40,6 +44,17 @@ class EcoDrugApp extends StatelessWidget {
           '/register': (context) => const RegisterScreen(),
           '/home': (context) => const HomeScreen(),
           '/courses': (context) => const CoursesScreen(),
+          '/news': (context) => const NewsFeedScreen(),
+        },
+        onGenerateRoute: (settings) {
+          // Handle routes with parameters
+          if (settings.name == '/news-detail') {
+            final newsId = settings.arguments as String;
+            return MaterialPageRoute(
+              builder: (context) => NewsDetailScreen(newsId: newsId),
+            );
+          }
+          return null;
         },
       ),
     );
