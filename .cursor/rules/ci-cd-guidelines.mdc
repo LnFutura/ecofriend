@@ -1,0 +1,460 @@
+---
+description: CI/CD guidelines for GitHub Actions, automated testing, and deployment
+---
+
+# CI/CD Guidelines for EcoDrug
+
+## GitHub Actions Workflow
+
+### Workflow Structure
+
+Our CI/CD pipeline (`.github/workflows/test.yml`) consists of 6 main jobs:
+
+1. **backend-tests** - Backend unit and integration tests
+2. **frontend-tests** - Flutter tests and analyzer
+3. **e2e-tests** - End-to-end API tests
+4. **security-audit** - npm audit and dependency checks
+5. **docker-build** - Docker image build tests
+6. **all-tests-passed** - Final success check
+
+### Job Configuration Best Practices
+
+#### Backend Tests
+
+```yaml
+backend-tests:
+  runs-on: ubuntu-latest
+  services:
+    mongodb:
+      image: mongo:7.0
+      # Always use health checks for services
+      options: >-
+        --health-cmd "mongosh --eval 'db.adminCommand({ping: 1})' || exit 1"
+        --health-interval 10s
+        --health-timeout 5s
+        --health-retries 5
+  
+  strategy:
+    matrix:
+      node-version: [18.x, 20.x]  # Test on multiple Node versions
+```
+
+**Key Points**:
+- Always test on multiple Node.js versions (LTS + Current)
+- Use MongoDB service with proper health checks
+- Don't use `npm ci` if no `package-lock.json` exists - use `npm install`
+- Set proper environment variables for tests (NODE_ENV=test, MONGO_URI, JWT_SECRET)
+
+#### Frontend Tests
+
+```yaml
+frontend-tests:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'  # Pin specific version
+        channel: 'stable'
+        cache: true  # Enable caching
+```
+
+**Key Points**:
+- Pin specific Flutter version for reproducibility
+- Use stable channel
+- Enable caching to speed up builds
+- Run `flutter analyze` before tests - it catches more errors
+- Make sure all analyzer errors are fixed (not just warnings)
+
+### Common CI/CD Issues and Solutions
+
+#### Issue 1: Missing package-lock.json
+
+**Error**: `npm ci` requires package-lock.json
+**Solution**: Use `npm install` instead of `npm ci`, or commit package-lock.json
+
+```yaml
+# ❌ BAD - fails without package-lock.json
+- run: npm ci
+
+# ✅ GOOD - works without package-lock.json
+- run: npm install
+```
+
+#### Issue 2: Static Method Access in Services
+
+**Error**: `instance_access_to_static_member`
+**Solution**: Don't create instances of classes with static methods
+
+```dart
+// ❌ BAD
+class NewsService {
+  final StorageService _storage = StorageService();
+  
+  Future<void> method() async {
+    final token = await _storage.getToken();  // Error!
+  }
+}
+
+// ✅ GOOD
+class NewsService {
+  Future<void> method() async {
+    final token = StorageService.getToken();  // Correct!
+  }
+}
+```
+
+#### Issue 3: Flutter Analyzer Errors Block CI
+
+**Solution**: Fix ALL analyzer errors, not just test failures
+- Run `flutter analyze` locally before pushing
+- Fix errors, not just warnings
+- Common issues:
+  - Undefined methods
+  - Wrong type usage (CardThemeData → CardTheme)
+  - Missing imports
+  - Async/await on non-Future values
+
+#### Issue 4: Docker Build Failures
+
+**Error**: `libgconf-2-4` not found in Debian
+**Solution**: Remove deprecated packages
+
+```dockerfile
+# ❌ BAD - libgconf-2-4 is deprecated
+RUN apt-get install -y libgconf-2-4
+
+# ✅ GOOD - removed deprecated packages
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    wget \
+    unzip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+```
+
+### Test Coverage Requirements
+
+Set minimum coverage thresholds in `jest.config.js`:
+
+```javascript
+coverageThreshold: {
+  global: {
+    branches: 70,
+    functions: 70,
+    lines: 70,
+    statements: 70,
+  },
+}
+```
+
+**Best Practices**:
+- Aim for >70% coverage on backend
+- 100% coverage on critical paths (auth, payments)
+- Frontend: aim for >60% coverage
+- Don't obsess over 100% - focus on meaningful tests
+
+### Writing CI-Friendly Tests
+
+#### Backend Tests (Jest)
+
+```javascript
+// ✅ GOOD - clean, isolated, fast
+describe('Auth Controller', () => {
+  let req, res;
+  
+  beforeEach(() => {
+    req = { body: {}, user: {}, params: {} };
+    res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+    };
+    jest.clearAllMocks();
+  });
+
+  test('should register user', async () => {
+    req.body = { email: 'test@test.com', username: 'test', password: 'test123' };
+    User.findOne.mockResolvedValue(null);
+    // ... rest of test
+  });
+});
+```
+
+**Key Points**:
+- Clear setup/teardown
+- Isolated tests (no shared state)
+- Fast execution (<10s for all unit tests)
+- Descriptive test names
+- Mock external dependencies
+
+#### Integration Tests
+
+```javascript
+// ✅ GOOD - tests real endpoints with real DB
+describe('Auth API', () => {
+  beforeAll(async () => {
+    // Connect to test DB once
+    await mongoose.connect(process.env.MONGO_URI);
+  });
+
+  beforeEach(async () => {
+    // Clear data before each test
+    await User.deleteMany({});
+    await Profile.deleteMany({});
+  });
+
+  afterAll(async () => {
+    // Cleanup after all tests
+    await mongoose.connection.close();
+  });
+
+  test('POST /api/auth/register', async () => {
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'test@test.com', username: 'test', password: 'test123' });
+    
+    expect(response.status).toBe(201);
+    expect(response.body.success).toBe(true);
+    expect(response.body.token).toBeDefined();
+  });
+});
+```
+
+**Key Points**:
+- Use real MongoDB connection (in-memory or service)
+- Clean data between tests
+- Close connections after tests
+- Test real HTTP requests
+- Verify complete response structure
+
+#### Frontend Tests (Flutter)
+
+```dart
+// ✅ GOOD - tests widget rendering and interaction
+testWidgets('Login screen renders correctly', (WidgetTester tester) async {
+  await tester.pumpWidget(
+    MaterialApp(
+      home: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ],
+        child: const LoginScreen(),
+      ),
+    ),
+  );
+
+  expect(find.text('Вход'), findsOneWidget);
+  expect(find.byType(TextField), findsAtLeast(2));
+  expect(find.byType(ElevatedButton), findsWidgets);
+});
+```
+
+**Key Points**:
+- Wrap widgets with MaterialApp
+- Provide necessary providers
+- Test what user sees, not implementation
+- Test interactions (taps, input)
+- Use descriptive expectations
+
+### Debugging Failed CI Builds
+
+#### Step 1: Check Logs
+
+```bash
+# View full workflow
+gh run view <run-id>
+
+# View failed job logs
+gh run view --log-failed --job=<job-id>
+
+# View specific job
+gh run view --job=<job-id>
+```
+
+#### Step 2: Reproduce Locally
+
+```bash
+# Backend
+cd backend
+export NODE_ENV=test
+export MONGO_URI="mongodb://admin:password123@localhost:27017/ecodrug_test?authSource=admin"
+export JWT_SECRET="test_jwt_secret_key_12345"
+npm test
+
+# Frontend
+cd frontend
+flutter analyze
+flutter test
+
+# Docker
+docker-compose up -d mongodb
+# Then run backend tests
+```
+
+#### Step 3: Fix and Push
+
+```bash
+# After fixing
+git add .
+git commit -m "fix: resolve CI/CD failure - <description>"
+git push origin main
+
+# Monitor new run
+gh run watch $(gh run list --limit 1 --json databaseId --jq '.[0].databaseId')
+```
+
+### Environment Variables for CI
+
+Always set these in workflow or GitHub Secrets:
+
+**Backend Tests**:
+- `NODE_ENV=test`
+- `MONGO_URI` - MongoDB connection string
+- `JWT_SECRET` - Test JWT secret
+- `PORT=5000`
+
+**Optional (for production)**:
+- `CODECOV_TOKEN` - For coverage reports
+- `DOCKER_USERNAME` - For Docker Hub
+- `DOCKER_PASSWORD` - For Docker Hub
+
+### Security Best Practices
+
+1. **Never commit secrets** - use GitHub Secrets
+2. **Use different secrets for test/prod** - don't reuse JWT_SECRET
+3. **Audit dependencies regularly** - npm audit, flutter pub outdated
+4. **Pin dependency versions** - avoid "latest" in CI
+5. **Review dependency updates** - don't auto-merge Dependabot PRs
+
+### Performance Optimization
+
+#### Speed Up Workflow
+
+```yaml
+# ✅ Enable caching
+- uses: actions/setup-node@v4
+  with:
+    node-version: ${{ matrix.node-version }}
+    cache: 'npm'  # Only works with package-lock.json
+
+# ✅ Use matrix strategy for parallel execution
+strategy:
+  matrix:
+    node-version: [18.x, 20.x]  # Runs in parallel
+
+# ✅ Skip unnecessary steps
+- name: Upload coverage
+  if: success()  # Only if tests passed
+  continue-on-error: true  # Don't fail build if upload fails
+```
+
+#### Reduce Test Time
+
+1. **Unit tests**: Should be <10 seconds total
+2. **Integration tests**: Should be <30 seconds total
+3. **Docker builds**: Cache layers, use slim images
+4. **Install dependencies**: Use caching when possible
+
+### Monitoring and Alerts
+
+#### GitHub Actions Badges
+
+Add to README.md:
+
+```markdown
+[![CI/CD Tests](https://github.com/USER/REPO/workflows/EcoDrug%20CI%2FCD/badge.svg)](https://github.com/USER/REPO/actions)
+[![codecov](https://codecov.io/gh/USER/REPO/branch/main/graph/badge.svg)](https://codecov.io/gh/USER/REPO)
+```
+
+#### Notifications
+
+Configure in workflow:
+
+```yaml
+# Send notification on failure
+- name: Notify on failure
+  if: failure()
+  run: |
+    curl -X POST $WEBHOOK_URL \
+      -d "Build failed: ${{ github.event.head_commit.message }}"
+```
+
+### Pre-commit Hooks (Husky)
+
+Prevent bad commits from reaching CI:
+
+```json
+// package.json
+{
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": ["eslint --fix", "git add"],
+    "*.dart": ["flutter format", "git add"]
+  }
+}
+```
+
+### Troubleshooting Checklist
+
+When CI fails:
+
+- [ ] Run tests locally first
+- [ ] Check all files are committed (especially test files)
+- [ ] Verify .gitignore isn't excluding test files
+- [ ] Run `flutter analyze` locally
+- [ ] Check MongoDB service health
+- [ ] Verify environment variables are set
+- [ ] Check for async/await issues
+- [ ] Verify all imports are correct
+- [ ] Check for static vs instance method issues
+- [ ] Review recent code changes
+
+### Resources
+
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+- [Jest Documentation](https://jestjs.io/)
+- [Flutter Testing Guide](https://docs.flutter.dev/testing)
+- [Supertest Documentation](https://github.com/visionmedia/supertest)
+
+### Quick Reference Commands
+
+```bash
+# Local testing
+make test                    # All tests
+make test-backend            # Backend only
+make test-frontend           # Frontend only
+./test-all.sh                # Bash script for all tests
+
+# CI/CD monitoring
+gh run list --limit 5        # List recent runs
+gh run view <id>             # View run details
+gh run watch <id>            # Watch run in real-time
+gh run view --log-failed <id> # View failed logs
+
+# Local CI simulation
+make test-ci                 # Simulate full CI pipeline
+```
+
+## Summary
+
+**Always**:
+- ✅ Test locally before pushing
+- ✅ Fix ALL analyzer errors (not just warnings)
+- ✅ Use proper environment variables
+- ✅ Clean up after tests
+- ✅ Write descriptive test names
+- ✅ Monitor CI/CD results
+
+**Never**:
+- ❌ Commit secrets or tokens
+- ❌ Push without running tests
+- ❌ Ignore analyzer warnings in CI
+- ❌ Skip environment variable setup
+- ❌ Use production DB for tests
+- ❌ Write flaky tests
+
+**Remember**: CI/CD is your safety net - don't bypass it!

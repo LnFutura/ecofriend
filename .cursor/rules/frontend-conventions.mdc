@@ -123,10 +123,16 @@ class MyService {
 // ✅ CORRECT - Use static methods directly
 class MyService {
   Future<void> myMethod() async {
-    final token = StorageService.getToken(); // Correct!
+    final token = StorageService.getToken(); // Correct! (synchronous)
   }
 }
 ```
+
+**Important Notes**:
+- `getToken()` is synchronous, not async - don't await it
+- `saveToken()` is async - do await it
+- Never create instances of classes with only static methods
+- This will cause `instance_access_to_static_member` analyzer error
 
 ## Flutter Web Specific
 - Use shared_preferences for token storage (web-compatible)

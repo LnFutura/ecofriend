@@ -45,6 +45,16 @@ Follow MVC (Model-View-Controller) pattern:
 - Implement rate limiting for auth endpoints
 - Validate and sanitize all user inputs
 
+## Testing Requirements
+- Write unit tests for all controllers
+- Write integration tests for all API endpoints
+- Aim for >70% code coverage
+- Mock external dependencies in unit tests
+- Use real MongoDB service for integration tests
+- Always clean test data between tests
+- Set NODE_ENV=test for test runs
+- Use separate test database (never production)
+
 ## API Response Format
 ```javascript
 // Success

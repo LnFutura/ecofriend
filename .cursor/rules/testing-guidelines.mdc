@@ -50,6 +50,24 @@ Test API endpoints with database:
 - 100% coverage for critical functions (auth, payment)
 - Run `npm test -- --coverage` to check coverage
 
+### Common Testing Mistakes to Avoid
+
+**❌ DON'T**:
+- Use `npm ci` without package-lock.json (use `npm install`)
+- Create instances of classes with static methods
+- Forget to mock external dependencies
+- Write tests that depend on execution order
+- Skip async/await when needed
+- Ignore Flutter analyzer errors
+
+**✅ DO**:
+- Always run tests locally before pushing
+- Clear test data between tests
+- Use descriptive test names
+- Mock external services (APIs, DBs in unit tests)
+- Close all connections in afterAll()
+- Fix ALL analyzer errors, not just warnings
+
 ## Frontend Testing (Flutter)
 
 ### Unit Tests (`/frontend/test/unit`)
