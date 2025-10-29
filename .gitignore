@@ -31,9 +31,15 @@ frontend/pubspec.lock
 *~
 
 # Testing
-*.test.js
 coverage/
 .nyc_output/
+*.lcov
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Test environment
+.env.test.local
 
 # IDE
 .vscode/

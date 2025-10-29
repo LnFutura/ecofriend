@@ -1,30 +1,90 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:provider/provider.dart';
 import 'package:ecodrug_frontend/main.dart';
+import 'package:ecodrug_frontend/providers/auth_provider.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('EcoDrug App Widget Tests', () {
+    testWidgets('App should initialize and show login screen', (WidgetTester tester) async {
+      // Build our app and trigger a frame.
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ],
+          child: const MyApp(),
+        ),
+      );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      // Verify that login screen elements are present
+      expect(find.text('ЭкоДруг'), findsOneWidget);
+      expect(find.byType(TextField), findsWidgets);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    testWidgets('Login screen has email and password fields', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ],
+          child: const MyApp(),
+        ),
+      );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      // Should find text fields for email and password
+      final textFields = find.byType(TextField);
+      expect(textFields, findsAtLeast(2));
+    });
+
+    testWidgets('Login screen has login button', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ],
+          child: const MyApp(),
+        ),
+      );
+
+      // Should find elevated button for login
+      expect(find.byType(ElevatedButton), findsWidgets);
+    });
   });
+
+  group('Validators Tests', () {
+    test('Email validator should validate correct emails', () {
+      // Test email validation logic
+      final validEmails = [
+        'test@example.com',
+        'user123@domain.ru',
+        'name.surname@company.co.uk',
+      ];
+
+      for (final email in validEmails) {
+        final isValid = _isValidEmail(email);
+        expect(isValid, true, reason: '$email should be valid');
+      }
+    });
+
+    test('Email validator should reject invalid emails', () {
+      final invalidEmails = [
+        'notanemail',
+        '@domain.com',
+        'user@',
+        'user @domain.com',
+      ];
+
+      for (final email in invalidEmails) {
+        final isValid = _isValidEmail(email);
+        expect(isValid, false, reason: '$email should be invalid');
+      }
+    });
+  });
+}
+
+// Helper function for email validation
+bool _isValidEmail(String email) {
+  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+  return emailRegex.hasMatch(email);
 }

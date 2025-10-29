@@ -1,19 +1,38 @@
 # EcoDrug Development Makefile
 
-.PHONY: help up down restart logs backend-logs frontend-logs clean install
+.PHONY: help up down restart logs backend-logs frontend-logs clean install test test-all test-backend test-frontend test-backend-unit test-backend-integration test-coverage
 
 # Default target
 help:
-	@echo "EcoDrug Development Commands:"
-	@echo "  make up              - Запустить все сервисы (MongoDB + Backend)"
-	@echo "  make down            - Остановить все сервисы"
-	@echo "  make restart         - Перезапустить все сервисы"
-	@echo "  make logs            - Показать логи всех сервисов"
-	@echo "  make backend-logs    - Показать логи backend"
-	@echo "  make frontend        - Запустить Flutter frontend локально"
-	@echo "  make clean           - Удалить все контейнеры и volumes"
-	@echo "  make install         - Установить зависимости"
-	@echo "  make dev             - Полный запуск для разработки"
+	@echo "🌱 EcoDrug Development Commands:"
+	@echo ""
+	@echo "📦 Docker Services:"
+	@echo "  make up                      - Запустить все сервисы (MongoDB + Backend)"
+	@echo "  make down                    - Остановить все сервисы"
+	@echo "  make restart                 - Перезапустить все сервисы"
+	@echo "  make logs                    - Показать логи всех сервисов"
+	@echo "  make backend-logs            - Показать логи backend"
+	@echo "  make status                  - Статус контейнеров"
+	@echo "  make clean                   - Удалить все контейнеры и volumes"
+	@echo ""
+	@echo "🚀 Development:"
+	@echo "  make frontend                - Запустить Flutter frontend локально"
+	@echo "  make install                 - Установить все зависимости"
+	@echo "  make dev                     - Полный запуск для разработки"
+	@echo ""
+	@echo "🧪 Testing:"
+	@echo "  make test                    - Запустить ВСЕ тесты (backend + frontend)"
+	@echo "  make test-all                - То же что и test"
+	@echo "  make test-backend            - Backend тесты (unit + integration)"
+	@echo "  make test-frontend           - Frontend тесты + analyzer"
+	@echo "  make test-backend-unit       - Только unit тесты backend"
+	@echo "  make test-backend-integration - Только integration тесты backend"
+	@echo "  make test-coverage           - Тесты с покрытием кода"
+	@echo ""
+	@echo "🗄️  Database:"
+	@echo "  make db-shell                - MongoDB shell"
+	@echo "  make db-backup               - Создать backup БД"
+	@echo "  make db-logs                 - Логи MongoDB"
 
 # Start all services
 up:
@@ -72,12 +91,71 @@ dev: up
 build:
 	docker-compose build
 
-# Run tests
+# ========================================
+# Testing Commands
+# ========================================
+
+# Run all tests (backend + frontend)
+test: test-all
+
+test-all:
+	@echo "🧪 Running all tests..."
+	@./test-all.sh
+
+# Backend tests (all)
 test-backend:
+	@echo "📦 Running backend tests..."
 	cd backend && npm test
 
+# Backend unit tests only
+test-backend-unit:
+	@echo "📦 Running backend unit tests..."
+	cd backend && npm run test:unit
+
+# Backend integration tests only
+test-backend-integration:
+	@echo "📦 Running backend integration tests..."
+	@echo "⚠️  Убедитесь, что MongoDB запущена: make up"
+	cd backend && npm run test:integration
+
+# Frontend tests
 test-frontend:
+	@echo "🎨 Running frontend tests..."
 	cd frontend && flutter test
+
+# Frontend analyzer
+test-frontend-analyze:
+	@echo "🎨 Running Flutter analyzer..."
+	cd frontend && flutter analyze
+
+# Run tests with coverage
+test-coverage:
+	@echo "📊 Running tests with coverage..."
+	@echo "Backend coverage:"
+	cd backend && npm test -- --coverage
+	@echo "\nFrontend coverage:"
+	cd frontend && flutter test --coverage
+	@echo "\n✅ Coverage reports generated!"
+	@echo "Backend: backend/coverage/lcov-report/index.html"
+	@echo "Frontend: frontend/coverage/lcov.info"
+
+# Watch mode for development
+test-watch-backend:
+	@echo "👀 Backend tests in watch mode..."
+	cd backend && npm run test:watch
+
+# CI/CD simulation
+test-ci:
+	@echo "🤖 Simulating CI/CD tests..."
+	@echo "\n1️⃣  Backend tests..."
+	@make test-backend
+	@echo "\n2️⃣  Frontend tests..."
+	@make test-frontend
+	@echo "\n3️⃣  Flutter analyzer..."
+	@make test-frontend-analyze
+	@echo "\n4️⃣  Docker validation..."
+	docker-compose config > /dev/null && echo "✅ Docker Compose valid"
+	@echo "\n✅ All CI/CD checks passed!"
 
 # Database management
 db-shell:

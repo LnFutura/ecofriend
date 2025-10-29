@@ -1,5 +1,10 @@
 # ЭкоДруг (EcoDrug)
 
+[![CI/CD Tests](https://github.com/YOUR_USERNAME/ecodrug/workflows/EcoDrug%20CI%2FCD%20-%20Full%20Test%20Suite/badge.svg)](https://github.com/YOUR_USERNAME/ecodrug/actions)
+[![Flutter Version](https://img.shields.io/badge/Flutter-3.16.0-blue.svg)](https://flutter.dev/)
+[![Node Version](https://img.shields.io/badge/Node.js-18%20%7C%2020-green.svg)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-7.0-green.svg)](https://www.mongodb.com/)
+
 Мобильное приложение для формирования экологически ответственного поведения граждан.
 
 ## Описание проекта
@@ -223,23 +228,58 @@ Frontend будет доступен на `http://localhost:*` (Flutter пока
 
 ## 🧪 Тестирование
 
+Проект имеет полноценную систему автоматического тестирования с GitHub Actions CI/CD.
+
 ### Backend
 ```bash
 cd backend
+
+# Все тесты с покрытием кода
 npm test
 
-# Или с Docker
-make test-backend
+# Unit тесты (контроллеры, модели)
+npm run test:unit
+
+# Integration тесты (API endpoints)
+npm run test:integration
+
+# Watch режим для разработки
+npm run test:watch
 ```
 
 ### Frontend
 ```bash
 cd frontend
+
+# Все тесты
 flutter test
 
-# Или с Makefile
-make test-frontend
+# С покрытием кода
+flutter test --coverage
+
+# Статический анализ
+flutter analyze
 ```
+
+### Покрытие кода
+
+- **Backend**: >70% (Jest)
+- **Frontend**: >60% (Flutter Test)
+- **Отчеты**: Генерируются автоматически в `coverage/` директории
+
+**📚 Подробное руководство**: См. [TESTING.md](./TESTING.md)
+
+### CI/CD с GitHub Actions
+
+При каждом push и pull request автоматически запускаются:
+- ✅ Backend unit и integration тесты
+- ✅ Frontend widget и service тесты
+- ✅ Security audit (npm audit, flutter pub outdated)
+- ✅ Docker build тесты
+- ✅ E2E тесты
+- ✅ Code coverage анализ
+
+**📚 Настройка CI/CD**: См. [CI_CD_SETUP.md](./CI_CD_SETUP.md)
 
 ## 🗄️ Управление базой данных
 
