@@ -1,0 +1,100 @@
+---
+globs: frontend/**/*.dart,frontend/pubspec.yaml
+---
+# Frontend (Flutter) Coding Conventions
+
+## Architecture Pattern
+Use Provider for state management with a clear separation of concerns:
+- **Models**: Data classes (Plain Dart classes or JSON serializable)
+- **Services**: API communication, local storage
+- **Providers**: State management, business logic
+- **Screens**: Full page widgets
+- **Widgets**: Reusable UI components
+
+## Code Organization
+
+### Models (`/lib/models`)
+- Use Dart classes to represent data structures
+- Implement `fromJson` and `toJson` methods for API communication
+- Keep models immutable when possible
+- Example: `user.dart`, `profile.dart`, `course.dart`
+
+```dart
+class User {
+  final String id;
+  final String email;
+  final String username;
+  
+  User({required this.id, required this.email, required this.username});
+  
+  factory User.fromJson(Map<String, dynamic> json) => User(
+    id: json['_id'],
+    email: json['email'],
+    username: json['username'],
+  );
+}
+```
+
+### Services (`/lib/services`)
+- Handle all HTTP requests
+- Store and retrieve authentication tokens
+- Use shared_preferences for web-compatible storage
+- Centralize API base URL configuration
+- Example: `auth_service.dart`, `api_service.dart`
+
+### Providers (`/lib/providers`)
+- Extend ChangeNotifier
+- Manage application state
+- Call services for data operations
+- Notify listeners on state changes
+- Example: `auth_provider.dart`, `profile_provider.dart`
+
+### Screens (`/lib/screens`)
+- Full-page widgets
+- Use StatefulWidget when local state is needed
+- Consume providers with Consumer or Provider.of
+- Example: `login_screen.dart`, `profile_screen.dart`, `home_screen.dart`
+
+### Widgets (`/lib/widgets`)
+- Reusable components
+- Keep them small and focused
+- Accept data via constructor parameters
+- Example: `custom_button.dart`, `loading_indicator.dart`
+
+## UI/UX Guidelines
+- Implement loading states for async operations
+- Show clear error messages to users
+- Use modern, clean design with good UX practices
+- Implement form validation before submission
+- Provide visual feedback for user actions
+- Use consistent spacing and colors throughout the app
+
+## State Management with Provider
+- Wrap MaterialApp with MultiProvider
+- Use Consumer for reactive UI updates
+- Call `notifyListeners()` after state changes
+- Separate UI logic from business logic
+
+## API Communication
+- Store base URL in constants/config file
+- Attach JWT token to authenticated requests
+- Handle different HTTP status codes appropriately
+- Parse responses and handle errors gracefully
+- Show loading indicators during API calls
+
+## Flutter Web Specific
+- Use shared_preferences for token storage (web-compatible)
+- Avoid platform-specific code (no iOS/Android specific features yet)
+- Test responsiveness for different screen sizes
+- Configure CORS headers on backend for web requests
+
+## Error Handling
+- Use try-catch for async operations
+- Display user-friendly error messages
+- Log errors for debugging
+- Provide fallback UI for error states
+
+## Navigation
+- Use named routes for better organization
+- Pass data via route arguments
+- Implement proper navigation flow (login → home → profile)

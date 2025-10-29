@@ -1,0 +1,57 @@
+---
+alwaysApply: true
+---
+# EcoDrug Project Structure
+
+This is a full-stack ecological mobile application called "ЭкоДруг" (EcoDrug).
+
+## Project Overview
+- **Purpose**: Universal digital solution for promoting environmentally responsible behavior
+- **Target Audience**: Citizens, eco-activists, students, volunteers, NGOs, eco-companies
+- **Main Features**: Eco news, events calendar, recycling point map, educational materials, gamification
+
+## Project Structure
+
+### Backend (`/backend`) - Node.js + Express + MongoDB
+- `/models` - MongoDB schemas (User, Profile, Course, News, Event, RecyclingPoint, Achievement, etc.)
+- `/routes` - API endpoint definitions
+- `/controllers` - Business logic for each module
+- `/middleware` - Authentication (JWT), validation, error handling
+- `/config` - Database connection, environment configuration
+- `/utils` - Helper functions
+- `/tests/unit` - Unit tests
+- `/tests/integration` - Integration tests
+
+### Frontend (`/frontend`) - Flutter Web (later mobile)
+- `/lib/models` - Dart data models
+- `/lib/services` - API service layer (HTTP calls, token management)
+- `/lib/screens` - UI screens (Login, Register, Profile, News, Events, Map, etc.)
+- `/lib/widgets` - Reusable UI components
+- `/lib/utils` - Helper functions and constants
+
+## Key Technologies
+- **Backend**: Node.js, Express, MongoDB, JWT, bcrypt, CORS
+- **Frontend**: Flutter Web (Dart), Provider (state management), shared_preferences
+- **Database**: MongoDB (local dev, MongoDB Atlas for production)
+- **Authentication**: JWT tokens with bcrypt password hashing
+
+## Core Modules (11 total)
+1. Authorization - registration, login, JWT security
+2. Profile - user data, achievements, roles (user/organization)
+3. Education - articles, courses, tests, videos
+4. News - feed, moderation, categories
+5. Events - calendar, event cards, registration
+6. Map - recycling points with filtering
+7. Gamification - points, achievements, levels, contribution visualization
+8. Notifications - reminders and push notifications
+9. Support - donations
+10. Organizations - verified NGO and company profiles
+11. Admin Panel - content moderation, organization verification
+
+## Important Guidelines
+- Always use JWT for authentication
+- Hash passwords with bcrypt before storing
+- Use CORS for frontend-backend communication
+- Implement role-based access control (user/organization/admin)
+- Follow modular architecture - keep concerns separated
+- All user-generated content requires moderation

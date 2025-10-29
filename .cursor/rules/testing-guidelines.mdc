@@ -1,0 +1,148 @@
+---
+globs: backend/tests/**/*.js,frontend/test/**/*.dart
+---
+# Testing Guidelines
+
+## Backend Testing (Jest + Supertest)
+
+### Test Structure
+```javascript
+describe('Auth Controller', () => {
+  describe('POST /api/auth/register', () => {
+    it('should register a new user with valid credentials', async () => {
+      // Arrange
+      const userData = { email: 'test@test.com', password: 'password123', username: 'testuser' };
+      
+      // Act
+      const response = await request(app).post('/api/auth/register').send(userData);
+      
+      // Assert
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.user.email).toBe(userData.email);
+    });
+    
+    it('should not register user with existing email', async () => {
+      // Test implementation
+    });
+  });
+});
+```
+
+### Unit Tests (`/backend/tests/unit`)
+Test individual functions in isolation:
+- Password hashing functions
+- JWT token generation/verification
+- Data validation functions
+- Utility functions
+- Model methods
+
+### Integration Tests (`/backend/tests/integration`)
+Test API endpoints with database:
+- Use mongodb-memory-server for in-memory database
+- Test complete request-response cycle
+- Test authentication flow
+- Test CRUD operations
+- Test error handling
+
+### Test Coverage Goals
+- Aim for 70%+ overall coverage
+- 100% coverage for critical functions (auth, payment)
+- Run `npm test -- --coverage` to check coverage
+
+## Frontend Testing (Flutter)
+
+### Unit Tests (`/frontend/test/unit`)
+```dart
+void main() {
+  group('User Model', () {
+    test('fromJson should parse JSON correctly', () {
+      final json = {'_id': '1', 'email': 'test@test.com', 'username': 'test'};
+      final user = User.fromJson(json);
+      
+      expect(user.id, '1');
+      expect(user.email, 'test@test.com');
+      expect(user.username, 'test');
+    });
+  });
+}
+```
+
+### Widget Tests (`/frontend/test/widget`)
+```dart
+void main() {
+  testWidgets('Login screen has email and password fields', (WidgetTester tester) async {
+    await tester.pumpWidget(MaterialApp(home: LoginScreen()));
+    
+    expect(find.byType(TextField), findsNWidgets(2));
+    expect(find.text('Email'), findsOneWidget);
+    expect(find.text('Password'), findsOneWidget);
+  });
+}
+```
+
+### Integration Tests (`/frontend/test/integration`)
+Test complete user flows:
+- Login flow: enter credentials → submit → navigate to home
+- Registration flow
+- Profile update flow
+
+## Manual Testing Checklist
+
+### Authentication
+- [ ] User can register with valid credentials
+- [ ] Cannot register with existing email
+- [ ] Cannot register with invalid email format
+- [ ] Cannot register with short password
+- [ ] User can login with correct credentials
+- [ ] Cannot login with wrong password
+- [ ] Cannot login with non-existent email
+- [ ] Token is stored after login
+- [ ] Token persists after page refresh
+- [ ] User is auto-logged in if token exists
+- [ ] User can logout successfully
+- [ ] Token is removed after logout
+
+### Profile
+- [ ] User can view their profile
+- [ ] User can edit profile fields
+- [ ] Changes are saved to backend
+- [ ] Points and achievements display correctly
+- [ ] Avatar upload works (if implemented)
+
+### Protected Routes
+- [ ] Unauthenticated users cannot access protected routes
+- [ ] Authenticated users can access protected routes
+- [ ] Expired tokens are handled properly
+
+### Error Handling
+- [ ] Network errors show user-friendly messages
+- [ ] Validation errors are displayed clearly
+- [ ] Server errors are handled gracefully
+- [ ] Loading states work correctly
+
+## Testing Best Practices
+
+### Backend
+- Mock external dependencies
+- Use before/after hooks for setup/teardown
+- Test both success and failure cases
+- Test edge cases and boundary conditions
+- Keep tests independent (no shared state)
+- Use descriptive test names
+
+### Frontend
+- Mock API calls in unit/widget tests
+- Test user interactions (button clicks, form inputs)
+- Test navigation between screens
+- Test state changes
+- Test error states and loading states
+- Use descriptive test names
+
+### General
+- Write tests before or alongside code (TDD/BDD)
+- Run tests before committing code
+- Fix failing tests immediately
+- Keep tests simple and readable
+- Don't test implementation details, test behavior
+- Maintain test code quality like production code

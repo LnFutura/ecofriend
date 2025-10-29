@@ -1,0 +1,185 @@
+---
+globs: backend/routes/**/*.js,backend/controllers/**/*.js
+---
+# API Design Guidelines
+
+## RESTful API Conventions
+
+### Endpoint Structure
+```
+/api/auth/register          POST   - Register new user
+/api/auth/login             POST   - Login user
+/api/auth/me                GET    - Get current user (protected)
+
+/api/profile                GET    - Get user profile (protected)
+/api/profile                PUT    - Update profile (protected)
+
+/api/courses                GET    - Get all courses
+/api/courses/:id            GET    - Get course by ID
+/api/courses                POST   - Create course (admin)
+/api/courses/:id            PUT    - Update course (admin)
+/api/courses/:id            DELETE - Delete course (admin)
+
+/api/news                   GET    - Get all news (published)
+/api/news/:id               GET    - Get news by ID
+/api/news                   POST   - Create news (user, needs moderation)
+/api/news/:id/approve       PUT    - Approve news (moderator)
+
+/api/events                 GET    - Get all events
+/api/events/:id             GET    - Get event by ID
+/api/events/:id/register    POST   - Register for event (protected)
+
+/api/map/recycling-points   GET    - Get recycling points (with filters)
+
+/api/admin/users            GET    - Get all users (admin)
+/api/admin/moderate         GET    - Get pending content (moderator)
+```
+
+### HTTP Methods
+- **GET**: Retrieve data (no body)
+- **POST**: Create new resource (with body)
+- **PUT**: Update existing resource (with body)
+- **PATCH**: Partial update (with body)
+- **DELETE**: Remove resource
+
+### HTTP Status Codes
+- **200 OK**: Successful GET, PUT, PATCH, DELETE
+- **201 Created**: Successful POST (resource created)
+- **400 Bad Request**: Invalid input, validation errors
+- **401 Unauthorized**: Missing or invalid authentication
+- **403 Forbidden**: Authenticated but not authorized
+- **404 Not Found**: Resource doesn't exist
+- **500 Internal Server Error**: Server-side error
+
+## Request/Response Format
+
+### Request Headers
+```
+Content-Type: application/json
+Authorization: Bearer <JWT_TOKEN>  // for protected routes
+```
+
+### Success Response Format
+```json
+{
+  "success": true,
+  "data": {
+    // Response data here
+  },
+  "message": "Operation successful"
+}
+```
+
+### Error Response Format
+```json
+{
+  "success": false,
+  "error": "Error identifier",
+  "message": "User-friendly error message"
+}
+```
+
+### Pagination (for list endpoints)
+```json
+{
+  "success": true,
+  "data": {
+    "items": [],
+    "page": 1,
+    "limit": 20,
+    "totalPages": 5,
+    "totalItems": 100
+  }
+}
+```
+
+## Query Parameters
+
+### Filtering
+```
+GET /api/courses?category=ecology&level=beginner
+GET /api/news?status=published&category=events
+GET /api/map/recycling-points?type=plastic&city=Moscow
+```
+
+### Pagination
+```
+GET /api/courses?page=1&limit=20
+```
+
+### Sorting
+```
+GET /api/news?sort=-createdAt  // descending
+GET /api/events?sort=date      // ascending
+```
+
+### Searching
+```
+GET /api/courses?search=переработка
+```
+
+## Authentication Flow
+
+1. **Register**: POST /api/auth/register
+   - Body: { email, password, username }
+   - Response: { user, token }
+
+2. **Login**: POST /api/auth/login
+   - Body: { email, password }
+   - Response: { user, token }
+
+3. **Access Protected Route**: Include token in Authorization header
+   - Header: `Authorization: Bearer <token>`
+
+4. **Get Current User**: GET /api/auth/me
+   - Header: `Authorization: Bearer <token>`
+   - Response: { user, profile }
+
+## Data Models for API
+
+### User
+```json
+{
+  "_id": "ObjectId",
+  "email": "user@example.com",
+  "username": "username",
+  "role": "user|organization|admin|moderator",
+  "createdAt": "2025-01-01T00:00:00.000Z"
+}
+```
+
+### Profile
+```json
+{
+  "_id": "ObjectId",
+  "user": "ObjectId (ref to User)",
+  "fullName": "John Doe",
+  "avatar": "url or path",
+  "points": 150,
+  "level": 3,
+  "achievements": ["ObjectId array"],
+  "createdAt": "2025-01-01T00:00:00.000Z"
+}
+```
+
+### Course
+```json
+{
+  "_id": "ObjectId",
+  "title": "Основы переработки отходов",
+  "description": "Course description",
+  "category": "recycling",
+  "level": "beginner|intermediate|advanced",
+  "content": "Course content",
+  "points": 50,
+  "published": true,
+  "createdAt": "2025-01-01T00:00:00.000Z"
+}
+```
+
+## Validation Rules
+- Email: Valid email format, required
+- Password: Min 6 characters, required
+- Username: Min 3 characters, alphanumeric, unique, required
+- Required fields: Check on both client and server
+- Max lengths: Title (200), description (1000), content (no limit)

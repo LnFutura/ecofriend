@@ -1,0 +1,75 @@
+---
+globs: backend/**/*.js,backend/**/*.json
+---
+# Backend Coding Conventions
+
+## Architecture Pattern
+Follow MVC (Model-View-Controller) pattern:
+- **Models**: Define MongoDB schemas with Mongoose
+- **Controllers**: Handle business logic, call models, return responses
+- **Routes**: Define endpoints, call controllers, apply middleware
+
+## Code Organization
+
+### Models (`/backend/models`)
+- Use Mongoose schemas
+- Include validation at schema level
+- Use timestamps: `{ timestamps: true }`
+- Add indexes for frequently queried fields
+- Example: `User.js`, `Profile.js`, `Course.js`, `Event.js`
+
+### Controllers (`/backend/controllers`)
+- Export async functions
+- Handle errors with try-catch
+- Return consistent response format: `{ success: true/false, data: {}, message: "" }`
+- Validate input before processing
+- Example: `authController.js`, `profileController.js`
+
+### Routes (`/backend/routes`)
+- Group by feature/module
+- Apply authentication middleware to protected routes
+- Use express-validator for input validation
+- Example: `auth.js`, `profile.js`, `courses.js`
+
+### Middleware (`/backend/middleware`)
+- `auth.js` - JWT verification
+- `roleCheck.js` - Role-based access control
+- `errorHandler.js` - Centralized error handling
+- `validation.js` - Request validation helpers
+
+## Security Requirements
+- **Never** store plain text passwords - always use bcrypt
+- **Always** verify JWT tokens on protected routes
+- **Always** sanitize user input
+- Use environment variables for sensitive data
+- Implement rate limiting for auth endpoints
+- Validate and sanitize all user inputs
+
+## API Response Format
+```javascript
+// Success
+{
+  success: true,
+  data: { /* response data */ },
+  message: "Operation successful"
+}
+
+// Error
+{
+  success: false,
+  error: "Error message",
+  message: "User-friendly message"
+}
+```
+
+## Error Handling
+- Use try-catch in all async functions
+- Return appropriate HTTP status codes (200, 201, 400, 401, 403, 404, 500)
+- Log errors for debugging
+- Never expose sensitive information in error messages
+
+## Database Conventions
+- Use camelCase for field names
+- Add `createdAt` and `updatedAt` timestamps
+- Create indexes for email, username, and frequently searched fields
+- Use ObjectId references for relationships

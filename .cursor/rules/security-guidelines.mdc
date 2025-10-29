@@ -1,0 +1,99 @@
+---
+alwaysApply: true
+---
+# Security Guidelines for EcoDrug
+
+## Authentication & Authorization
+
+### JWT Tokens
+- Generate JWT tokens on successful login
+- Set appropriate expiration time (7 days default)
+- Store JWT_SECRET in environment variables, never in code
+- Verify tokens on every protected route
+- Include user ID and role in JWT payload
+
+### Password Security
+- **Always** hash passwords with bcrypt before storing
+- Use salt rounds of at least 10
+- Never log or expose passwords
+- Implement password strength requirements (min 6 characters, consider complexity)
+- Never return password field in API responses
+
+### Protected Routes
+- Apply authentication middleware to all protected routes
+- Verify JWT token exists and is valid
+- Check user permissions/roles where needed
+- Return 401 for unauthenticated requests
+- Return 403 for unauthorized access
+
+## Input Validation & Sanitization
+
+### Backend Validation
+- Validate all user inputs on the server side
+- Use express-validator for request validation
+- Sanitize inputs to prevent injection attacks
+- Validate email format, required fields, data types
+- Never trust client-side validation alone
+
+### Frontend Validation
+- Implement client-side validation for better UX
+- Validate email format, required fields, password match
+- Show clear validation messages
+- Remember: backend validation is the source of truth
+
+## Data Protection
+
+### Sensitive Data
+- Store all secrets in `.env` file
+- Never commit `.env` to version control
+- Add `.env` to `.gitignore`
+- Provide `.env.example` with required variables (without actual values)
+- Use environment variables for: JWT_SECRET, MONGO_URI, API keys
+
+### Database Security
+- Use MongoDB authentication
+- Implement proper access control
+- Don't expose database connection strings
+- Use MongoDB Atlas for production with IP whitelisting
+- Regular backups
+
+## CORS Configuration
+- Configure CORS to allow only trusted origins
+- In development: allow localhost
+- In production: allow only your frontend domain
+- Don't use wildcard (*) in production
+- Set appropriate CORS headers (credentials, methods, headers)
+
+## API Security Best Practices
+- Implement rate limiting on authentication endpoints
+- Use HTTPS in production
+- Validate Content-Type headers
+- Implement request size limits
+- Log suspicious activities
+- Return generic error messages (don't expose system details)
+
+## User Data Privacy
+- Only collect necessary user data
+- Don't expose other users' private information
+- Implement proper authorization checks
+- Users should only access their own data
+- Admin/moderator roles for accessing other users' data
+
+## Content Moderation
+- All user-generated content must be moderated before publishing
+- Store moderation status in database
+- Only admins can approve content
+- Implement reporting functionality
+- Filter inappropriate content
+
+## Security Checklist
+- [ ] Passwords hashed with bcrypt
+- [ ] JWT tokens properly verified
+- [ ] Environment variables for secrets
+- [ ] Input validation on backend
+- [ ] CORS properly configured
+- [ ] MongoDB connection secured
+- [ ] No sensitive data in logs
+- [ ] Role-based access control implemented
+- [ ] Rate limiting on auth endpoints
+- [ ] Error messages don't expose system details

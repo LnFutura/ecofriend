@@ -1,0 +1,329 @@
+---
+description: Detailed data models and schemas for all modules
+---
+# Data Models & Schemas
+
+This file contains detailed MongoDB schemas for all 11 modules of EcoDrug.
+
+## Module 1 & 2: User and Profile
+
+### User Model
+```javascript
+{
+  email: String (required, unique, lowercase),
+  username: String (required, unique, 3+ chars),
+  password: String (required, hashed with bcrypt, 6+ chars),
+  role: String (enum: ['user', 'organization', 'moderator', 'admin']),
+  profile: ObjectId (ref: Profile),
+  isVerified: Boolean (default: false),
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### Profile Model
+```javascript
+{
+  user: ObjectId (ref: User, required, unique),
+  fullName: String,
+  avatar: String (URL or path),
+  bio: String (max 500 chars),
+  location: {
+    city: String,
+    country: String,
+    coordinates: [Number] // [longitude, latitude]
+  },
+  points: Number (default: 0, min: 0),
+  level: Number (default: 1, min: 1),
+  achievements: [ObjectId] (ref: Achievement),
+  completedCourses: [ObjectId] (ref: Course),
+  attendedEvents: [ObjectId] (ref: Event),
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+## Module 3: Education
+
+### Course Model
+```javascript
+{
+  title: String (required, max 200 chars),
+  description: String (required, max 1000 chars),
+  content: String (rich text / markdown),
+  category: String (enum: ['recycling', 'energy', 'water', 'biodiversity', 'climate', 'general']),
+  level: String (enum: ['beginner', 'intermediate', 'advanced']),
+  duration: Number (minutes),
+  points: Number (reward for completion),
+  thumbnail: String (image URL),
+  author: ObjectId (ref: User),
+  modules: [{
+    title: String,
+    content: String,
+    order: Number,
+    videoUrl: String,
+    resources: [String] // URLs to additional materials
+  }],
+  quiz: ObjectId (ref: Quiz),
+  published: Boolean (default: false),
+  enrolledCount: Number (default: 0),
+  rating: Number (default: 0, min: 0, max: 5),
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### Quiz Model
+```javascript
+{
+  course: ObjectId (ref: Course, required),
+  questions: [{
+    question: String (required),
+    type: String (enum: ['multiple_choice', 'true_false', 'text']),
+    options: [String], // for multiple choice
+    correctAnswer: String or Number (index),
+    explanation: String,
+    points: Number (default: 10)
+  }],
+  passingScore: Number (percentage, default: 70),
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+## Module 4: News
+
+### News Model
+```javascript
+{
+  title: String (required, max 200 chars),
+  content: String (required, rich text),
+  excerpt: String (max 300 chars),
+  thumbnail: String (image URL),
+  category: String (enum: ['news', 'article', 'guide', 'event_report', 'research']),
+  tags: [String],
+  author: ObjectId (ref: User, required),
+  status: String (enum: ['draft', 'pending', 'approved', 'rejected'], default: 'pending'),
+  moderator: ObjectId (ref: User), // who approved/rejected
+  moderationNote: String,
+  publishedAt: Date,
+  views: Number (default: 0),
+  likes: [ObjectId] (refs: User),
+  comments: [{
+    user: ObjectId (ref: User),
+    text: String,
+    createdAt: Date
+  }],
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+## Module 5: Events
+
+### Event Model
+```javascript
+{
+  title: String (required, max 200 chars),
+  description: String (required, max 1000 chars),
+  type: String (enum: ['cleanup', 'workshop', 'conference', 'webinar', 'tree_planting', 'other']),
+  organizer: ObjectId (ref: User, required), // organization or user
+  date: Date (required),
+  endDate: Date,
+  location: {
+    address: String,
+    city: String,
+    country: String,
+    coordinates: [Number] // [longitude, latitude]
+  },
+  isOnline: Boolean (default: false),
+  onlineLink: String (if isOnline),
+  capacity: Number (max participants),
+  registered: [ObjectId] (refs: User),
+  attendees: [ObjectId] (refs: User), // who actually attended
+  thumbnail: String (image URL),
+  tags: [String],
+  status: String (enum: ['draft', 'pending', 'approved', 'cancelled'], default: 'pending'),
+  points: Number (reward for participation),
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+## Module 6: Map
+
+### RecyclingPoint Model
+```javascript
+{
+  name: String (required),
+  type: [String] (enum: ['plastic', 'glass', 'paper', 'metal', 'electronics', 'batteries', 'clothes', 'hazardous', 'organic']),
+  address: String (required),
+  city: String (required),
+  country: String (default: 'Russia'),
+  coordinates: {
+    type: String (default: 'Point'),
+    coordinates: [Number] // [longitude, latitude]
+  },
+  workingHours: String,
+  phone: String,
+  website: String,
+  description: String,
+  photos: [String] (image URLs),
+  addedBy: ObjectId (ref: User),
+  verified: Boolean (default: false),
+  rating: Number (default: 0),
+  reviews: [{
+    user: ObjectId (ref: User),
+    rating: Number (1-5),
+    comment: String,
+    createdAt: Date
+  }],
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+## Module 7: Gamification
+
+### Achievement Model
+```javascript
+{
+  name: String (required),
+  description: String (required),
+  icon: String (image URL or emoji),
+  type: String (enum: ['course', 'event', 'news', 'points', 'streak', 'special']),
+  condition: {
+    type: String (e.g., 'complete_courses', 'earn_points', 'attend_events'),
+    value: Number (threshold)
+  },
+  points: Number (bonus points),
+  rarity: String (enum: ['common', 'rare', 'epic', 'legendary']),
+  createdAt: Date
+}
+```
+
+### Challenge Model
+```javascript
+{
+  title: String (required),
+  description: String (required),
+  type: String (enum: ['daily', 'weekly', 'monthly', 'special']),
+  startDate: Date (required),
+  endDate: Date (required),
+  goal: {
+    type: String (e.g., 'complete_courses', 'attend_events', 'earn_points'),
+    target: Number
+  },
+  reward: {
+    points: Number,
+    achievement: ObjectId (ref: Achievement)
+  },
+  participants: [{
+    user: ObjectId (ref: User),
+    progress: Number (default: 0),
+    completed: Boolean (default: false)
+  }],
+  active: Boolean (default: true),
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+## Module 8: Notifications
+
+### Notification Model
+```javascript
+{
+  user: ObjectId (ref: User, required),
+  type: String (enum: ['event', 'challenge', 'achievement', 'news', 'system', 'moderation']),
+  title: String (required),
+  message: String (required),
+  link: String (optional link to related content),
+  relatedModel: String (e.g., 'Event', 'Course'),
+  relatedId: ObjectId,
+  read: Boolean (default: false),
+  createdAt: Date
+}
+```
+
+## Module 9: Support (Donations)
+
+### Donation Model
+```javascript
+{
+  user: ObjectId (ref: User),
+  amount: Number (required, min: 1),
+  currency: String (default: 'RUB'),
+  paymentMethod: String (enum: ['card', 'paypal', 'yandex_money', 'other']),
+  status: String (enum: ['pending', 'completed', 'failed'], default: 'pending'),
+  transactionId: String,
+  message: String (optional message from donor),
+  anonymous: Boolean (default: false),
+  createdAt: Date
+}
+```
+
+## Module 10: Organizations
+
+### Organization Model
+```javascript
+{
+  user: ObjectId (ref: User, required), // linked to organization account
+  name: String (required),
+  type: String (enum: ['ngo', 'company', 'government', 'educational', 'other']),
+  description: String (max 1000 chars),
+  website: String,
+  email: String,
+  phone: String,
+  address: String,
+  logo: String (image URL),
+  documents: [String] (verification documents URLs),
+  verified: Boolean (default: false),
+  verifiedBy: ObjectId (ref: User), // admin who verified
+  verificationDate: Date,
+  socialLinks: {
+    facebook: String,
+    instagram: String,
+    vk: String,
+    telegram: String
+  },
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+## Module 11: Admin / Moderation
+
+### ModerationQueue Model
+```javascript
+{
+  itemType: String (enum: ['news', 'event', 'organization', 'recycling_point']),
+  itemId: ObjectId (required),
+  status: String (enum: ['pending', 'approved', 'rejected'], default: 'pending'),
+  submittedBy: ObjectId (ref: User),
+  reviewedBy: ObjectId (ref: User),
+  reviewNote: String,
+  priority: String (enum: ['low', 'medium', 'high'], default: 'medium'),
+  createdAt: Date,
+  reviewedAt: Date
+}
+```
+
+## Indexes for Performance
+
+### Critical Indexes
+- User: email, username
+- Profile: user, points (desc), level (desc)
+- Course: category, level, published
+- News: status, publishedAt (desc), author
+- Event: date, status, organizer
+- RecyclingPoint: coordinates (2dsphere), city, type
+- Notification: user, read, createdAt (desc)
+
+## Relationships Summary
+- User ←→ Profile (1:1)
+- User → News (1:many)
+- User → Events (1:many as organizer)
+- User → Courses (many:many via Profile.completedCourses)
+- User → Achievements (many:many via Profile.achievements)
+- Organization → User (1:1)

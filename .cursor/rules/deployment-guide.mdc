@@ -1,0 +1,136 @@
+---
+description: Deployment and production configuration guidelines
+---
+# Deployment Guide
+
+## Backend Deployment Options
+
+### Recommended Platforms
+1. **Railway** - современная платформа, простой деплой из GitHub
+2. **Render** - бесплатный tier, автоматический деплой
+3. **Heroku** - классика, простая настройка (платный после 2022)
+4. **DigitalOcean App Platform** - больше контроля
+5. **AWS Elastic Beanstalk** - для масштабных решений
+
+### Deployment Steps
+
+#### 1. Prepare Backend for Production
+Create `Procfile` (for Heroku/Railway):
+```
+web: node server.js
+```
+
+Add start script to `package.json`:
+```json
+"scripts": {
+  "start": "node server.js",
+  "dev": "nodemon server.js"
+}
+```
+
+#### 2. Environment Variables
+Set on hosting platform:
+- `NODE_ENV=production`
+- `PORT=5000` (or platform-provided)
+- `MONGO_URI=<MongoDB Atlas connection string>`
+- `JWT_SECRET=<strong random string>`
+- `JWT_EXPIRE=7d`
+- `CLIENT_URL=<frontend URL>`
+
+#### 3. MongoDB Atlas Setup
+- Create free cluster at mongodb.com/cloud/atlas
+- Create database user with password
+- Whitelist all IPs (0.0.0.0/0) or specific IPs
+- Get connection string and add to environment variables
+- Format: `mongodb+srv://<user>:<password>@cluster.mongodb.net/ecodrug`
+
+### Frontend Deployment (Flutter Web)
+
+#### Build for Production
+```bash
+cd frontend
+flutter build web --release
+```
+
+#### Deployment Platforms
+1. **Netlify** (Recommended for Flutter Web)
+   - Drag & drop `build/web` folder
+   - Or connect GitHub for auto-deploy
+   - Configure: Base directory = `frontend`, Build command = `flutter build web`, Publish directory = `frontend/build/web`
+
+2. **Vercel**
+   - Similar to Netlify
+   - Good performance and CDN
+
+3. **Firebase Hosting**
+   - Google's platform
+   - Good integration with other Firebase services
+
+#### Configuration
+Create `frontend/.env.production`:
+```
+API_BASE_URL=https://your-backend-url.com/api
+```
+
+### CI/CD Setup (Optional but Recommended)
+
+#### GitHub Actions Example
+Create `.github/workflows/deploy.yml`:
+```yaml
+name: Deploy Backend
+on:
+  push:
+    branches: [main]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Deploy to Railway
+        run: |
+          # Your deployment script
+```
+
+### SSL/HTTPS
+- Most platforms provide free SSL automatically
+- For custom domains: use Let's Encrypt
+- **Always use HTTPS in production**
+
+### Monitoring & Logging
+- Use platform-provided logs
+- Consider: Sentry for error tracking
+- Consider: LogRocket for frontend monitoring
+- Monitor MongoDB Atlas performance metrics
+
+### Backup Strategy
+- MongoDB Atlas automatic backups
+- Export critical data regularly
+- Keep backups of environment variables
+
+### Performance Optimization
+- Enable gzip compression on backend
+- Use CDN for static assets
+- Implement caching where appropriate
+- Optimize images and assets
+- Consider Redis for session/cache storage (future)
+
+### Security in Production
+- Never expose .env file
+- Use strong JWT_SECRET (32+ random characters)
+- Enable CORS only for your frontend domain
+- Set up rate limiting
+- Keep dependencies updated
+- Regular security audits
+
+### Deployment Checklist
+- [ ] Backend deployed and accessible
+- [ ] MongoDB Atlas configured and connected
+- [ ] Environment variables set correctly
+- [ ] Frontend built and deployed
+- [ ] API_BASE_URL configured in frontend
+- [ ] CORS configured for frontend domain
+- [ ] SSL/HTTPS enabled
+- [ ] Test authentication flow end-to-end
+- [ ] Test all critical user paths
+- [ ] Monitor logs for errors
+- [ ] Set up error alerting
