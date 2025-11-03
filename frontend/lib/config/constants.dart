@@ -2,7 +2,7 @@ class AppConstants {
   // API Configuration
   // Для web используем localhost, для мобильных - IP адрес Mac
   static const String apiBaseUrl = 
-      String.fromEnvironment('API_URL', defaultValue: 'http://localhost:5000/api');
+      String.fromEnvironment('API_URL', defaultValue: 'http://localhost:3001/api');
   
   // Storage Keys
   static const String tokenKey = 'auth_token';
