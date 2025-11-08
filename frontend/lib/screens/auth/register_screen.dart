@@ -21,6 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool _obscurePassword = true; // Переменная для показа/скрытия пароля
 
   @override
   void dispose() {
@@ -109,14 +110,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               // Password field
                               TextFormField(
                                 controller: _passwordController,
-                                obscureText: true,
-                                decoration: const InputDecoration(
+                                obscureText: _obscurePassword,
+                                decoration: InputDecoration(
                                   hintText: 'Пароль',
                                   border: InputBorder.none,
                                   enabledBorder: InputBorder.none,
                                   focusedBorder: InputBorder.none,
                                   errorBorder: InputBorder.none,
-                                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                                  // Иконка для показа/скрытия пароля
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                      color: Colors.black.withOpacity(0.54),
+                                      size: 20,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscurePassword = !_obscurePassword;
+                                      });
+                                    },
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
                                 ),
                                 style: Theme.of(context).textTheme.bodyMedium,
                                 validator: Validators.validatePassword,

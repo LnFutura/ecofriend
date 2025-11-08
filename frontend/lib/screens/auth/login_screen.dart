@@ -16,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _obscurePassword = true; // Переменная для показа/скрытия пароля
 
   @override
   void dispose() {
@@ -205,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   height: 35 * scaleHeight,
                                   child: TextFormField(
                                     controller: _passwordController,
-                                    obscureText: true,
+                                    obscureText: _obscurePassword,
                                     decoration: InputDecoration(
                                       hintText: 'Пароль',
                                       hintStyle: TextStyle(
@@ -220,6 +221,27 @@ class _LoginScreenState extends State<LoginScreen> {
                                       errorBorder: InputBorder.none,
                                       contentPadding: EdgeInsets.zero,
                                       isDense: true,
+                                      // Иконка для показа/скрытия пароля
+                                      suffixIcon: SizedBox(
+                                        width: 24 * scaleWidth,
+                                        height: 24 * scaleHeight,
+                                        child: Center(
+                                          child: IconButton(
+                                            icon: Icon(
+                                              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                              color: Colors.black.withOpacity(0.54),
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                _obscurePassword = !_obscurePassword;
+                                              });
+                                            },
+                                            padding: EdgeInsets.zero,
+                                            iconSize: 16 * scaleWidth,
+                                            visualDensity: VisualDensity.compact,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                     style: TextStyle(
                                       fontFamily: 'Neucha',
@@ -230,6 +252,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                     validator: Validators.validatePassword,
                                   ),
                                 ),
+                                
+                                SizedBox(height: 8 * scaleHeight),
+                                
+                                // Разделитель под полем пароля
+                                Container(
+                                  width: 222.5 * scaleWidth,
+                                  height: 1,
+                                  color: const Color(0xFF141414),
+                                ),
+                                
+                                SizedBox(height: 12 * scaleHeight), // Увеличил отступ от разделителя до края карточки
                               ],
                             ),
                           ),
