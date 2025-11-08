@@ -3,7 +3,11 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/profile.dart';
 import '../../services/profile_service.dart';
+import '../../utils/theme.dart';
 import '../../widgets/common/loading_indicator.dart';
+import '../../widgets/decorative/paw_prints_background.dart';
+import '../../widgets/decorative/figma_button.dart';
+import '../../widgets/bottom_nav_bar.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -44,31 +48,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Профиль'),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) async {
-              if (value == 'logout') {
-                await authProvider.logout();
-                if (!mounted) return;
-                Navigator.of(context).pushReplacementNamed('/login');
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Выйти'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: 3, // Профиль - последняя вкладка (но в новом дизайне нет вкладки профиля)
+        onTap: (index) {
+          // Навигация между разделами
+          switch (index) {
+            case 0:
+              // Экопоходы (События)
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Экопоходы - в разработке')),
+              );
+              break;
+            case 1:
+              // Обучение
+              Navigator.of(context).pushNamed('/courses');
+              break;
+            case 2:
+              // Новости
+              Navigator.of(context).pushNamed('/news');
+              break;
+            case 3:
+              // Карта
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Карта - в разработке')),
+              );
+              break;
+          }
+        },
       ),
       body: _isLoading
           ? const LoadingIndicator(message: 'Загрузка профиля...')
@@ -88,132 +94,321 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 )
-              : RefreshIndicator(
-                  onRefresh: _loadProfile,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      children: [
-                        // Profile header
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                          ),
-                          child: Column(
+              : PawPrintsBackground(
+                  backgroundColor: AppTheme.screenBlue,
+                  child: Column(
+                    children: [
+                      // Верхняя панель с заголовком, уведомлениями и кнопкой выхода
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        child: SafeArea(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              CircleAvatar(
-                                radius: 50,
-                                backgroundColor: Theme.of(context).colorScheme.primary,
-                                backgroundImage: _profile?.avatar != null
-                                    ? NetworkImage(_profile!.avatar!)
-                                    : null,
-                                child: _profile?.avatar == null
-                                    ? const Icon(Icons.person, size: 50, color: Colors.white)
-                                    : null,
-                              ),
-                              const SizedBox(height: 16),
                               Text(
-                                _profile?.fullName ?? authProvider.user?.username ?? 'Пользователь',
+                                'ЭкоДруг',
                                 style: Theme.of(context).textTheme.headlineMedium,
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '@${authProvider.user?.username ?? ""}',
-                                style: const TextStyle(color: Colors.grey),
+                              Row(
+                                children: [
+                                  // Кнопка уведомлений
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: AppTheme.textDark, width: 2),
+                                    ),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: () {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Уведомления - в разработке')),
+                                          );
+                                        },
+                                        borderRadius: BorderRadius.circular(20),
+                                        child: const Icon(
+                                          Icons.notifications,
+                                          color: AppTheme.textDark,
+                                          size: 24,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  // Кнопка "Выйти"
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.errorRed,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: AppTheme.textDark, width: 2),
+                                    ),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: () async {
+                                          await authProvider.logout();
+                                          if (!mounted) return;
+                                          Navigator.of(context).pushReplacementNamed('/welcome');
+                                        },
+                                        borderRadius: BorderRadius.circular(20),
+                                        child: const Icon(
+                                          Icons.logout,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              if (_profile?.bio != null) ...[
-                                const SizedBox(height: 8),
-                                Text(
-                                  _profile!.bio!,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(fontSize: 14),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // Основной контент с прокруткой
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: _loadProfile,
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 20),
+                            
+                            // Заголовок и email
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _profile?.fullName ?? authProvider.user?.username ?? 'Пользователь',
+                                      style: Theme.of(context).textTheme.headlineLarge,
+                                    ),
+                                    Text(
+                                      authProvider.user?.email ?? '',
+                                      style: Theme.of(context).textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
+                                // Аватар с иконкой настроек
+                                Stack(
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: AppTheme.textDark,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: CircleAvatar(
+                                        radius: 35,
+                                        backgroundImage: _profile?.avatar != null
+                                            ? NetworkImage(_profile!.avatar!)
+                                            : null,
+                                        child: _profile?.avatar == null
+                                            ? const Icon(Icons.person, size: 35)
+                                            : null,
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: 0,
+                                      right: 0,
+                                      child: InkWell(
+                                        onTap: () async {
+                                          await authProvider.logout();
+                                          if (!mounted) return;
+                                          Navigator.of(context).pushReplacementNamed('/welcome');
+                                        },
+                                        borderRadius: BorderRadius.circular(15),
+                                        child: Container(
+                                          width: 30,
+                                          height: 30,
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.primaryPurple,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: AppTheme.textDark,
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: const Icon(
+                                            Icons.settings,
+                                            color: AppTheme.textDark,
+                                            size: 15,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
-                            ],
-                          ),
+                            ),
+                            
+                            const SizedBox(height: 24),
+                            
+                            // Кнопки редактирования с иконками карандаша
+                            _buildEditButton(
+                              context,
+                              'Изменить имя',
+                              () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Редактирование имени - в разработке')),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            _buildEditButton(
+                              context,
+                              'Изменить почту',
+                              () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Редактирование почты - в разработке')),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            _buildEditButton(
+                              context,
+                              'Изменить пароль',
+                              () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Изменение пароля - в разработке')),
+                                );
+                              },
+                            ),
+                            
+                            const SizedBox(height: 32),
+                            
+                            // Текст и достижения
+                            Text(
+                              'Вы прошли все основные и\nдополнительные курсы и\nпоучаствовали в 3 экопоходах',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              textAlign: TextAlign.center,
+                            ),
+                            
+                            const SizedBox(height: 24),
+                            
+                            // Кнопка достижений с иконкой
+                            _buildIconButton(
+                              context,
+                              'Достижения',
+                              Icons.emoji_events,
+                              AppTheme.primaryPurple,
+                              () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Экран достижений - в разработке')),
+                                );
+                              },
+                            ),
+                            
+                            const SizedBox(height: 12),
+                            
+                            // Кнопка званий с иконкой
+                            _buildIconButton(
+                              context,
+                              'Звания',
+                              Icons.star,
+                              AppTheme.primaryGreen,
+                              () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Экран званий - в разработке')),
+                                );
+                              },
+                            ),
+                            
+                            const SizedBox(height: 32),
+                            
+                            const SizedBox(height: 20),
+                          ],
                         ),
-
-                        // Stats
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _StatItem(
-                                icon: Icons.star,
-                                label: 'Баллы',
-                                value: _profile?.points.toString() ?? '0',
-                                color: Colors.amber,
-                              ),
-                              _StatItem(
-                                icon: Icons.trending_up,
-                                label: 'Уровень',
-                                value: _profile?.level.toString() ?? '1',
-                                color: Colors.green,
-                              ),
-                              _StatItem(
-                                icon: Icons.emoji_events,
-                                label: 'Достижения',
-                                value: _profile?.achievements.length.toString() ?? '0',
-                                color: Colors.orange,
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const Divider(),
-
-                        // Menu items
-                        ListTile(
-                          leading: const Icon(Icons.edit),
-                          title: const Text('Редактировать профиль'),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                          onTap: () {
-                            // TODO: Navigate to edit profile (Фаза 4)
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Доступно в Фазе 4')),
-                            );
-                          },
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.emoji_events),
-                          title: const Text('Мои достижения'),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                          onTap: () {
-                            // TODO: Navigate to achievements (Фаза 6)
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Доступно в Фазе 6')),
-                            );
-                          },
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.school),
-                          title: const Text('Пройденные курсы'),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                          onTap: () {
-                            // TODO: Navigate to completed courses (Фаза 4)
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Доступно в Фазе 4')),
-                            );
-                          },
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.leaderboard),
-                          title: const Text('Таблица лидеров'),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                          onTap: () {
-                            // TODO: Navigate to leaderboard (Фаза 4)
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Доступно в Фазе 4')),
-                            );
-                          },
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
+              ],
+            ),
+          ),
+    );
+  }
+
+  // Вспомогательный виджет для кнопок редактирования с иконкой карандаша
+  Widget _buildEditButton(BuildContext context, String text, VoidCallback onPressed) {
+    return Row(
+    children: [
+      Expanded(
+        child: FigmaButton(
+          text: text,
+          onPressed: onPressed,
+        ),
+      ),
+      const SizedBox(width: 12),
+      Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          border: Border.all(color: AppTheme.textDark, width: 2),
+        ),
+        child: const Icon(
+          Icons.edit,
+          color: AppTheme.textDark,
+          size: 20,
+        ),
+      ),
+    ],
+    );
+  }
+
+  // Вспомогательный виджет для кнопок с иконками (Достижения, Звания)
+  Widget _buildIconButton(
+    BuildContext context,
+    String text,
+    IconData icon,
+    Color backgroundColor,
+    VoidCallback onPressed,
+  ) {
+    return Container(
+    width: 200,
+    height: 50,
+    decoration: BoxDecoration(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(30),
+      border: Border.all(color: AppTheme.textDark, width: 2),
+    ),
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(30),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: AppTheme.textDark, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              text,
+              style: const TextStyle(
+                fontFamily: 'Neucha',
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.textDark,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
     );
   }
 }

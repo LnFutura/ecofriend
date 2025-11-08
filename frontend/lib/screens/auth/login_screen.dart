@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/validators.dart';
-import '../../widgets/common/custom_button.dart';
-import '../../widgets/common/custom_text_field.dart';
+import '../../utils/theme.dart';
+import '../../widgets/decorative/cloud_bubble.dart';
+import '../../widgets/decorative/figma_button.dart';
+import '../../widgets/decorative/paw_prints_background.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -44,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(authProvider.errorMessage ?? 'Ошибка входа'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.errorRed,
         ),
       );
     }
@@ -53,87 +55,148 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Logo and title
-                  Icon(
-                    Icons.eco,
-                    size: 80,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'ЭкоДруг',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.displayMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Экологически ответственное будущее',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey,
+      body: PawPrintsBackground(
+        backgroundColor: AppTheme.screenGreen,
+        child: Stack(
+          children: [
+            // Основной контент
+            SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Облако с текстом
+                        const CloudBubble(
+                          text: 'Друг, введи\nданные,\nпожалуйста!',
+                          width: 200,
                         ),
-                  ),
-                  const SizedBox(height: 48),
+                        
+                        const SizedBox(height: 40),
 
-                  // Email field
-                  CustomTextField(
-                    label: 'Email',
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    prefixIcon: Icons.email,
-                    validator: Validators.validateEmail,
-                  ),
-                  const SizedBox(height: 16),
+                        // Карточка с полями ввода
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: AppTheme.textDark, width: 2),
+                          ),
+                          child: Column(
+                            children: [
+                              // Email field
+                              TextFormField(
+                                controller: _emailController,
+                                keyboardType: TextInputType.emailAddress,
+                                decoration: const InputDecoration(
+                                  hintText: 'Телефон или email',
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  errorBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                ),
+                                style: Theme.of(context).textTheme.bodyMedium,
+                                validator: Validators.validateEmail,
+                              ),
+                              
+                              // Разделитель
+                              const Divider(
+                                color: AppTheme.textDark,
+                                thickness: 1,
+                              ),
 
-                  // Password field
-                  CustomTextField(
-                    label: 'Пароль',
-                    controller: _passwordController,
-                    obscureText: true,
-                    prefixIcon: Icons.lock,
-                    validator: Validators.validatePassword,
-                  ),
-                  const SizedBox(height: 24),
+                              // Password field
+                              TextFormField(
+                                controller: _passwordController,
+                                obscureText: true,
+                                decoration: const InputDecoration(
+                                  hintText: 'Пароль',
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  errorBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                                ),
+                                style: Theme.of(context).textTheme.bodyMedium,
+                                validator: Validators.validatePassword,
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 24),
 
-                  // Login button
-                  Consumer<AuthProvider>(
-                    builder: (context, authProvider, child) {
-                      return CustomButton(
-                        text: 'Войти',
-                        onPressed: _handleLogin,
-                        isLoading: authProvider.isLoading,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
+                        // Login button
+                        Consumer<AuthProvider>(
+                          builder: (context, authProvider, child) {
+                            return FigmaButton(
+                              text: 'Войти',
+                              width: 200,
+                              onPressed: _handleLogin,
+                              isLoading: authProvider.isLoading,
+                            );
+                          },
+                        ),
+                        
+                        const SizedBox(height: 24),
 
-                  // Register link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('Нет аккаунта? '),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pushReplacementNamed('/register');
-                        },
-                        child: const Text('Зарегистрироваться'),
-                      ),
-                    ],
+                        // Register link
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pushReplacementNamed('/register');
+                          },
+                          child: Text(
+                            'Регистрация',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: AppTheme.primaryRed,
+                                  decoration: TextDecoration.underline,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+            
+            // Кнопка "Назад" в левом верхнем углу
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppTheme.textDark, width: 2),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.of(context).pop();
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        child: const Icon(
+                          Icons.arrow_back,
+                          color: AppTheme.textDark,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

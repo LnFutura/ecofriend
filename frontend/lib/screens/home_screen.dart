@@ -55,7 +55,18 @@ class _DashboardScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.notifications),
             onPressed: () {
-              // TODO: Navigate to notifications
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Уведомления - в разработке')),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            color: Colors.red,
+            onPressed: () async {
+              await authProvider.logout();
+              if (!context.mounted) return;
+              Navigator.of(context).pushReplacementNamed('/welcome');
             },
           ),
         ],

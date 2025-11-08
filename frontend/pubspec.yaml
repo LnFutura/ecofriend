@@ -37,13 +37,16 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   
-  # Assets (uncomment when adding images/fonts)
-  # assets:
-  #   - assets/images/
-  #   - assets/icons/
+  # Assets
+  assets:
+    - assets/images/
+    - assets/icons/Эко Друг/
+    - assets/screens/
+    - assets/color/
   
-  # fonts:
-  #   - family: Roboto
-  #     fonts:
-  #       - asset: fonts/Roboto-Regular.ttf
+  # Fonts
+  fonts:
+    - family: Neucha
+      fonts:
+        - asset: assets/fonts/Neucha/Neucha-Regular.ttf
 

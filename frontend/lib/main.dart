@@ -4,6 +4,7 @@ import 'config/constants.dart';
 import 'providers/auth_provider.dart';
 import 'providers/education_provider.dart';
 import 'providers/news_provider.dart';
+import 'screens/welcome_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/home_screen.dart';
@@ -40,6 +41,7 @@ class EcoDrugApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/': (context) => const AuthCheckScreen(),
+          '/welcome': (context) => const WelcomeScreen(),
           '/login': (context) => const LoginScreen(),
           '/register': (context) => const RegisterScreen(),
           '/home': (context) => const HomeScreen(),
@@ -86,9 +88,9 @@ class AuthCheckScreen extends StatelessWidget {
             body: Center(child: CircularProgressIndicator()),
           );
         } else {
-          // Navigate to login if not authenticated
+          // Navigate to welcome screen if not authenticated
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.of(context).pushReplacementNamed('/login');
+            Navigator.of(context).pushReplacementNamed('/welcome');
           });
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
