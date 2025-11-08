@@ -62,6 +62,11 @@ class AuthProvider with ChangeNotifier {
         username: username,
         password: password,
         role: role,
+      ).timeout(
+        Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('Сервер не отвечает. Проверьте соединение с интернетом.');
+        },
       );
 
       _user = response.user;
@@ -89,6 +94,11 @@ class AuthProvider with ChangeNotifier {
       final response = await _authService.login(
         email: email,
         password: password,
+      ).timeout(
+        Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('Сервер не отвечает. Проверьте соединение с интернетом.');
+        },
       );
 
       _user = response.user;

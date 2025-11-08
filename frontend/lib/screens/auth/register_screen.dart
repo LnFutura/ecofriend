@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -15,12 +16,15 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  final _usernameController = TextEditingController();
+  // TODO: Раскомментировать когда добавим поле username в UI
+  // final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
+  // TODO: Раскомментировать когда добавим поле "Подтвердите пароль" в UI
+  // final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _showButton = false; // Показывать кнопку только если заполнено хотя бы одно поле
   String _cloudText = 'Друг, введи\nданные,\nпожалуйста!'; // Текст в облаке меняется после успешной проверки
+  DateTime? _lastAttemptTime; // Для rate limiting
 
   @override
   void initState() {
@@ -31,12 +35,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _checkFields() {
-    final hasContent = _emailController.text.isNotEmpty || _passwordController.text.isNotEmpty;
-    if (hasContent != _showButton) {
+    // Проверяем валидность полей, а не только наличие текста
+    final emailValid = Validators.validateEmail(_emailController.text) == null;
+    final passwordValid = Validators.validatePassword(_passwordController.text) == null;
+    final shouldShow = emailValid && passwordValid;
+    
+    if (shouldShow != _showButton) {
       setState(() {
-        _showButton = hasContent;
+        _showButton = shouldShow;
       });
     }
+  }
+
+  // Генерация случайного username в формате user_XXXXXXXX
+  String _generateRandomUsername() {
+    final random = Random();
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    final randomPart = List.generate(8, (index) => chars[random.nextInt(chars.length)]).join();
+    return 'user_$randomPart';
   }
 
   @override
@@ -44,13 +60,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.removeListener(_checkFields);
     _passwordController.removeListener(_checkFields);
     _emailController.dispose();
-    _usernameController.dispose();
+    // _usernameController.dispose(); // TODO: Раскомментировать когда добавим поле
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
+    // _confirmPasswordController.dispose(); // TODO: Раскомментировать когда добавим поле
     super.dispose();
   }
 
   Future<void> _handleRegister() async {
+    // Rate limiting: проверка на слишком частые попытки
+    if (_lastAttemptTime != null) {
+      final timeSinceLastAttempt = DateTime.now().difference(_lastAttemptTime!);
+      if (timeSinceLastAttempt < Duration(seconds: 2)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Подождите ${2 - timeSinceLastAttempt.inSeconds} сек. перед следующей попыткой'),
+            backgroundColor: AppTheme.errorRed,
+            duration: Duration(seconds: 1),
+          ),
+        );
+        return;
+      }
+    }
+    
+    _lastAttemptTime = DateTime.now();
+    
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -62,9 +95,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     
-    // Используем email как username, так как поле username не отображается на экране
+    // Генерируем случайный username
     final email = _emailController.text.trim();
-    final username = email.split('@')[0]; // Берем часть до @ как username
+    final username = _generateRandomUsername();
     
     final success = await authProvider.register(
       email: email,

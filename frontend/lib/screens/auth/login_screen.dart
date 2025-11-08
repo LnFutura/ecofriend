@@ -17,6 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true; // Переменная для показа/скрытия пароля
+  DateTime? _lastAttemptTime; // Для rate limiting
 
   @override
   void dispose() {
@@ -26,6 +27,23 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
+    // Rate limiting: проверка на слишком частые попытки
+    if (_lastAttemptTime != null) {
+      final timeSinceLastAttempt = DateTime.now().difference(_lastAttemptTime!);
+      if (timeSinceLastAttempt < Duration(seconds: 2)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Подождите ${2 - timeSinceLastAttempt.inSeconds} сек. перед следующей попыткой'),
+            backgroundColor: AppTheme.errorRed,
+            duration: Duration(seconds: 1),
+          ),
+        );
+        return;
+      }
+    }
+    
+    _lastAttemptTime = DateTime.now();
+    
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -42,9 +60,10 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success) {
       Navigator.of(context).pushReplacementNamed('/home');
     } else {
+      // Используем общее сообщение для защиты от timing attack
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.errorMessage ?? 'Ошибка входа'),
+          content: Text('Неверный email или пароль'),
           backgroundColor: AppTheme.errorRed,
         ),
       );
