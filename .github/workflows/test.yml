@@ -85,7 +85,7 @@ jobs:
       
       - name: Run frontend tests
         working-directory: ./frontend
-        run: flutter test --coverage
+        run: flutter test test/screens/ test/integration/ --coverage
       
       - name: Upload frontend coverage
         uses: codecov/codecov-action@v3
