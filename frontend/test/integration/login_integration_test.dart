@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:ecodrug_frontend/main.dart';
 import 'package:ecodrug_frontend/providers/auth_provider.dart';
 import 'package:ecodrug_frontend/screens/auth/login_screen.dart';
-import 'package:ecodrug_frontend/screens/home_screen.dart';
 
 void main() {
   group('Login Screen - Integration Tests', () {

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/theme.dart';
 import '../widgets/decorative/bear_mascot.dart';
-import '../widgets/decorative/figma_button.dart';
-import '../widgets/decorative/paw_prints_background.dart';
-import '../widgets/decorative/wave_decoration.dart';
 
 /// Начальный экран (Welcome Screen) как в дизайне Figma
 class WelcomeScreen extends StatelessWidget {
