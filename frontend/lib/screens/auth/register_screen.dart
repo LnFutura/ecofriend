@@ -108,7 +108,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.of(context).pushReplacementNamed('/home');
+      Navigator.of(context).pushReplacementNamed('/profile');
     } else {
       // Если ошибка, возвращаем исходный текст
       setState(() {

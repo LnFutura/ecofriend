@@ -58,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.of(context).pushReplacementNamed('/home');
+      Navigator.of(context).pushReplacementNamed('/profile');
     } else {
       // Используем общее сообщение для защиты от timing attack
       ScaffoldMessenger.of(context).showSnackBar(

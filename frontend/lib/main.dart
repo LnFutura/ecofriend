@@ -4,10 +4,11 @@ import 'config/constants.dart';
 import 'providers/auth_provider.dart';
 import 'providers/education_provider.dart';
 import 'providers/news_provider.dart';
+import 'providers/profile_provider.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/profile/profile_screen.dart';
 import 'screens/courses/courses_screen.dart';
 import 'screens/news/news_feed_screen.dart';
 import 'screens/news/news_detail_screen.dart';
@@ -31,6 +32,7 @@ class EcoDrugApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()..init()),
+        ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => EducationProvider()),
         ChangeNotifierProvider(create: (_) => NewsProvider()),
       ],
@@ -44,7 +46,7 @@ class EcoDrugApp extends StatelessWidget {
           '/welcome': (context) => const WelcomeScreen(),
           '/login': (context) => const LoginScreen(),
           '/register': (context) => const RegisterScreen(),
-          '/home': (context) => const HomeScreen(),
+          '/profile': (context) => const ProfileScreen(),
           '/courses': (context) => const CoursesScreen(),
           '/news': (context) => const NewsFeedScreen(),
         },
@@ -80,9 +82,9 @@ class AuthCheckScreen extends StatelessWidget {
         }
 
         if (authProvider.isAuthenticated) {
-          // Navigate to home if authenticated
+          // Navigate to profile if authenticated
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.of(context).pushReplacementNamed('/home');
+            Navigator.of(context).pushReplacementNamed('/profile');
           });
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),

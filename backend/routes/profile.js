@@ -7,9 +7,12 @@ const {
   updateProfile,
   addPoints,
   getLeaderboard,
+  uploadAvatar,
+  deleteAvatar,
 } = require('../controllers/profileController');
 const { protect } = require('../middleware/auth');
 const validate = require('../middleware/validation');
+const upload = require('../middleware/upload');
 
 // Validation rules
 const updateProfileValidation = [
@@ -41,6 +44,10 @@ router.get('/me', protect, getMyProfile);
 router.get('/:id', getProfile);
 router.put('/', protect, updateProfileValidation, validate, updateProfile);
 router.post('/points', protect, addPointsValidation, validate, addPoints);
+
+// Avatar upload/delete routes
+router.post('/avatar', protect, upload.single('avatar'), uploadAvatar);
+router.delete('/avatar', protect, deleteAvatar);
 
 module.exports = router;
 

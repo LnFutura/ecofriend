@@ -28,3 +28,9 @@ class AppConstants {
   static const double nearbyRadius = 5000; // 5km in meters
 }
 
+// API Constants for service layer
+class ApiConstants {
+  static const String baseUrl = 'http://localhost:3001/api';
+  static const String serverUrl = 'http://localhost:3001'; // Для статических файлов
+}
+
