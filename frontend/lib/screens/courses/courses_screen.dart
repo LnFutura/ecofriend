@@ -26,6 +26,16 @@ class _CoursesScreenState extends State<CoursesScreen> {
       appBar: AppBar(
         title: const Text('Эко-курсы'),
         backgroundColor: AppTheme.primaryGreen,
+        actions: [
+          // Кнопка перехода в профиль
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.white),
+            onPressed: () {
+              Navigator.of(context).pushNamed('/profile');
+            },
+            tooltip: 'Профиль',
+          ),
+        ],
       ),
       body: Consumer<EducationProvider>(
         builder: (context, provider, child) {

@@ -104,12 +104,12 @@ class _LoginScreenState extends State<LoginScreen> {
             
             // Основной контент
             SafeArea(
-              child: SingleChildScrollView(
+          child: SingleChildScrollView(
                 child: SizedBox(
                   width: screenWidth,
                   height: screenHeight - MediaQuery.of(context).padding.top,
-                  child: Form(
-                    key: _formKey,
+            child: Form(
+              key: _formKey,
                     child: Stack(
                       children: [
                         // SVG Облако с текстом (Мысль)
@@ -120,14 +120,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 333 * scaleWidth,
                             height: 267 * scaleHeight,
                             child: Stack(
-                              children: [
+                children: [
                                 // SVG облако
                                 SvgPicture.asset(
                                   'assets/icons/Эко Друг/Мысль.svg',
                                   width: 333 * scaleWidth,
                                   height: 267 * scaleHeight,
                                   fit: BoxFit.contain,
-                                ),
+                  ),
                                 // Текст поверх облака (центрированный)
                                 Positioned(
                                   left: 60 * scaleWidth,
@@ -138,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     child: Center(
                                       child: Text(
                                         'Друг, введи\nданные,\nпожалуйста!',
-                                        textAlign: TextAlign.center,
+                    textAlign: TextAlign.center,
                                         style: TextStyle(
                                           fontFamily: 'Neucha',
                                           fontSize: 25 * scaleWidth,
@@ -172,18 +172,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               border: Border.all(
                                 color: const Color(0xFF141414),
                                 width: 3 * scaleWidth,
-                              ),
-                            ),
+                        ),
+                  ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Email field
+                  // Email field
                                 SizedBox(
                                   height: 35 * scaleHeight,
                                   child: TextFormField(
-                                    controller: _emailController,
-                                    keyboardType: TextInputType.emailAddress,
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
                                     decoration: InputDecoration(
                                       hintText: 'Телефон или email',
                                       hintStyle: TextStyle(
@@ -205,8 +205,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                       color: Colors.black,
                                       letterSpacing: 1.6,
                                     ),
-                                    validator: Validators.validateEmail,
-                                  ),
+                    validator: Validators.validateEmail,
+                  ),
                                 ),
                                 
                                 SizedBox(height: 8 * scaleHeight),
@@ -219,12 +219,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 
                                 SizedBox(height: 8 * scaleHeight),
-                                
-                                // Password field
+
+                  // Password field
                                 SizedBox(
                                   height: 35 * scaleHeight,
                                   child: TextFormField(
-                                    controller: _passwordController,
+                    controller: _passwordController,
                                     obscureText: _obscurePassword,
                                     decoration: InputDecoration(
                                       hintText: 'Пароль',
@@ -268,8 +268,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                       color: Colors.black,
                                       letterSpacing: 1.6,
                                     ),
-                                    validator: Validators.validatePassword,
-                                  ),
+                    validator: Validators.validatePassword,
+                  ),
                                 ),
                                 
                                 SizedBox(height: 8 * scaleHeight),
@@ -286,13 +286,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                         ),
-                        
+
                         // Кнопка "Войти" с тенью (Group 4)
                         Positioned(
                           left: 108 * scaleWidth,
                           top: 560 * scaleHeight, // Поднял с 585 до 560
                           child: Consumer<AuthProvider>(
-                            builder: (context, authProvider, child) {
+                    builder: (context, authProvider, child) {
                               return GestureDetector(
                                 onTap: authProvider.isLoading ? null : _handleLogin,
                                 child: Stack(
@@ -350,19 +350,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ],
                                 ),
-                              );
-                            },
-                          ),
+                      );
+                    },
+                  ),
                         ),
-                        
+
                         // Ссылка "Регистрация"
                         Positioned(
                           left: 141 * scaleWidth,
                           top: 670 * scaleHeight, // Поднял с 701 до 670
                           child: TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pushReplacementNamed('/register');
-                            },
+                        onPressed: () {
+                          Navigator.of(context).pushReplacementNamed('/register');
+                        },
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
                               minimumSize: const Size(0, 0),
@@ -377,13 +377,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color: const Color(0xFF228036),
                                 letterSpacing: 2.0,
                               ),
-                            ),
+                      ),
                           ),
-                        ),
-                      ],
-                    ),
                   ),
-                ),
+                ],
+              ),
+            ),
+          ),
               ),
             ),
             

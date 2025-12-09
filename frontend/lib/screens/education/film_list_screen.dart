@@ -2,30 +2,45 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../config/constants.dart';
-import '../../providers/news_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
-import '../../utils/theme.dart';
 
-class NewsFeedScreen extends StatefulWidget {
-  const NewsFeedScreen({super.key});
+class FilmListScreen extends StatefulWidget {
+  const FilmListScreen({super.key});
 
   @override
-  State<NewsFeedScreen> createState() => _NewsFeedScreenState();
+  State<FilmListScreen> createState() => _FilmListScreenState();
 }
 
-class _NewsFeedScreenState extends State<NewsFeedScreen> {
+class _FilmListScreenState extends State<FilmListScreen> {
+  // Временные данные фильмов (потом загрузим с backend)
+  final List<Map<String, dynamic>> _films = [
+    {
+      'id': '1',
+      'title': 'Свалки',
+      'description': 'Несанкционированные свалки — боль мегаполиса на берегах Невы.',
+      'thumbnail': 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=400',
+    },
+    {
+      'id': '2',
+      'title': 'Мусоропереработка',
+      'description': 'О том как мусору дают вторую жизнь.',
+      'thumbnail': 'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?w=400',
+    },
+    {
+      'id': '3',
+      'title': 'Сортировка',
+      'description': 'Если мусор сортировать, из него ещё что-то путёвое.',
+      'thumbnail': 'https://images.unsplash.com/photo-1604187351574-c75ca79f5807?w=400',
+    },
+  ];
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<NewsProvider>(context, listen: false).fetchNews();
       Provider.of<ProfileProvider>(context, listen: false).loadProfile();
     });
-  }
-
-  Future<void> _refreshNews() async {
-    await Provider.of<NewsProvider>(context, listen: false).fetchNews();
   }
 
   @override
@@ -41,7 +56,7 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
           Container(
             width: size.width,
             height: size.height,
-            color: const Color(0xFFED8D8C),
+            color: const Color(0xFFBC9CEA),
           ),
 
           // ========== ЛАПКА МЕДВЕДЯ НИЖНЯЯ ПРАВАЯ ==========
@@ -184,7 +199,7 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
                                     width: 40 * scaleWidth,
                                     height: 40 * scaleHeight,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFE57F7E),
+                                      color: const Color(0xFFBC9CEA),
                                       shape: BoxShape.circle,
                                       border: Border.all(
                                         color: const Color(0xFF181818),
@@ -209,13 +224,13 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
 
                     SizedBox(height: 10 * scaleHeight),
 
-                    // ========== ЗАГОЛОВОК "НОВОСТИ" ==========
+                    // ========== ЗАГОЛОВОК "ЭКОФИЛЬМЫ" ==========
                     Padding(
                       padding: EdgeInsets.only(left: 34 * scaleWidth),
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'Новости',
+                          'Экофильмы',
                           style: TextStyle(
                             fontFamily: 'Neucha',
                             fontSize: 40 * scaleWidth,
@@ -229,57 +244,24 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
 
                     SizedBox(height: 20 * scaleHeight),
 
-                    // ========== ЛЕНТА НОВОСТЕЙ (ОБЫЧНЫЙ СКРОЛЛ С PULL-TO-REFRESH) ==========
+                    // ========== СПИСОК ФИЛЬМОВ ==========
                     Expanded(
-                      child: Consumer<NewsProvider>(
-                        builder: (context, provider, child) {
-                          if (provider.isLoading && provider.newsList.isEmpty) {
-                            return const Center(
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                              ),
-                            );
-                          }
+                      child: ListView.builder(
+                        padding: EdgeInsets.only(
+                          left: 34 * scaleWidth,
+                          right: 34 * scaleWidth,
+                          bottom: 20 * scaleHeight,
+                        ),
+                        itemCount: _films.length,
+                        itemBuilder: (context, index) {
+                          final film = _films[index];
 
-                          if (provider.newsList.isEmpty) {
-                            return Center(
-                              child: Text(
-                                'Новостей пока нет',
-                                style: TextStyle(
-                                  fontFamily: 'Neucha',
-                                  fontSize: 18 * scaleWidth,
-                                  color: const Color(0xFF111111),
-                                ),
-                              ),
-                            );
-                          }
-
-                          // RefreshIndicator для pull-to-refresh
-                          return RefreshIndicator(
-                            onRefresh: _refreshNews,
-                            color: const Color(0xFF181818),
-                            backgroundColor: Colors.white,
-                            child: ListView.builder(
-                              padding: EdgeInsets.only(
-                                left: 13 * scaleWidth,
-                                right: 13 * scaleWidth,
-                                bottom: 20 * scaleHeight,
-                              ),
-                              itemCount: provider.newsList.length,
-                              itemBuilder: (context, index) {
-                                final news = provider.newsList[index];
-                                
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                    bottom: 18 * scaleHeight,
-                                  ),
-                                  child: _NewsCard(
-                                    news: news,
-                                    scaleWidth: scaleWidth,
-                                    scaleHeight: scaleHeight,
-                                  ),
-                                );
-                              },
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: 18 * scaleHeight),
+                            child: _buildFilmCard(
+                              film,
+                              scaleWidth,
+                              scaleHeight,
                             ),
                           );
                         },
@@ -326,6 +308,144 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
     );
   }
 
+  Widget _buildFilmCard(
+    Map<String, dynamic> film,
+    double scaleWidth,
+    double scaleHeight,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Открыть фильм: ${film['title']}')),
+        );
+      },
+      child: Container(
+        height: 180 * scaleHeight,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8F8F8),
+          borderRadius: BorderRadius.circular(25),
+          border: Border.all(
+            color: const Color(0xFF181818),
+            width: 4,
+          ),
+        ),
+        child: Row(
+          children: [
+            // Текст слева
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16 * scaleWidth,
+                  vertical: 14 * scaleHeight,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      film['title'],
+                      style: TextStyle(
+                        fontFamily: 'Neucha',
+                        fontSize: 20 * scaleWidth,
+                        height: 22 / 20,
+                        letterSpacing: 0.06 * 20 * scaleWidth,
+                        color: const Color(0xFF111111),
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 8 * scaleHeight),
+                    Text(
+                      film['description'],
+                      style: TextStyle(
+                        fontFamily: 'Neucha',
+                        fontSize: 14 * scaleWidth,
+                        height: 16 / 14,
+                        letterSpacing: 0.06 * 14 * scaleWidth,
+                        color: const Color(0xFF666666),
+                      ),
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            // Изображение справа с кнопкой play
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(21),
+                    bottomRight: Radius.circular(21),
+                  ),
+                  child: Image.network(
+                    film['thumbnail'],
+                    width: 130 * scaleWidth,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                    cacheWidth: 260,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        width: 130 * scaleWidth,
+                        color: Colors.grey[300],
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 130 * scaleWidth,
+                        color: Colors.grey[300],
+                        child: Icon(
+                          Icons.video_library,
+                          size: 40 * scaleWidth,
+                          color: Colors.grey[500],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                
+                // Иконка Play
+                Positioned.fill(
+                  child: Center(
+                    child: Container(
+                      width: 50 * scaleWidth,
+                      height: 50 * scaleHeight,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFBC9CEA).withOpacity(0.9),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0xFF181818),
+                          width: 3,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.play_arrow,
+                        size: 30 * scaleWidth,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildBottomNavigationBar(double scaleWidth, double scaleHeight) {
     return Container(
       height: 90 * scaleHeight,
@@ -355,10 +475,12 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
           ),
           _buildNavIcon(
             'assets/icons/Эко Друг/новости.svg',
-            const Color(0xFFE57F7E),
+            const Color(0xFFED8D8C),
             scaleWidth,
             scaleHeight,
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).pushNamed('/news');
+            },
           ),
           _buildNavIcon(
             'assets/icons/Эко Друг/карта.svg',
@@ -409,147 +531,3 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
   }
 }
 
-// ========== КАРТОЧКА НОВОСТИ ==========
-class _NewsCard extends StatelessWidget {
-  final dynamic news;
-  final double scaleWidth;
-  final double scaleHeight;
-
-  const _NewsCard({
-    required this.news,
-    required this.scaleWidth,
-    required this.scaleHeight,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cityTag = news.tags.isNotEmpty ? news.tags[0] : '';
-    final hasExcerpt = news.excerpt != null && news.excerpt!.isNotEmpty;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8F8F8),
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(
-          color: const Color(0xFF181818),
-          width: 4,
-        ),
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ТЕКСТ СЛЕВА
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 14 * scaleWidth,
-                  vertical: 14 * scaleHeight,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (cityTag.isNotEmpty)
-                      Text(
-                        'В $cityTag',
-                        style: TextStyle(
-                          fontFamily: 'Neucha',
-                          fontSize: 18 * scaleWidth,
-                          height: 20 / 18,
-                          letterSpacing: 0.06 * 18 * scaleWidth,
-                          color: const Color(0xFFFF3C3A),
-                        ),
-                      ),
-                    if (cityTag.isNotEmpty) SizedBox(height: 4 * scaleHeight),
-                    Text(
-                      news.title,
-                      style: TextStyle(
-                        fontFamily: 'Neucha',
-                        fontSize: 16 * scaleWidth,
-                        height: 20 / 16,
-                        letterSpacing: 0.06 * 16 * scaleWidth,
-                        color: const Color(0xFF222222),
-                      ),
-                      maxLines: hasExcerpt ? 4 : 6,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (hasExcerpt) ...[
-                      SizedBox(height: 8 * scaleHeight),
-                      Text(
-                        news.excerpt!,
-                        style: TextStyle(
-                          fontFamily: 'Neucha',
-                          fontSize: 14 * scaleWidth,
-                          height: 16 / 14,
-                          letterSpacing: 0.06 * 14 * scaleWidth,
-                          color: const Color(0xFFFF3C3A),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            
-            // ИЗОБРАЖЕНИЕ СПРАВА
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(21),
-                bottomRight: Radius.circular(21),
-                topLeft: Radius.circular(20),
-                bottomLeft: Radius.circular(20),
-              ),
-              child: news.thumbnail != null
-                  ? Image.network(
-                      news.thumbnail!,
-                      width: 130 * scaleWidth,
-                      fit: BoxFit.cover,
-                      cacheWidth: 260, // Кэширование для производительности
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          width: 130 * scaleWidth,
-                          color: Colors.grey[300],
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
-                              strokeWidth: 2,
-                            ),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return _placeholderImage();
-                      },
-                    )
-                  : _placeholderImage(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _placeholderImage() {
-    return Container(
-      width: 130 * scaleWidth,
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Center(
-        child: Icon(
-          Icons.image,
-          size: 40 * scaleWidth,
-          color: Colors.grey[500],
-        ),
-      ),
-    );
-  }
-}

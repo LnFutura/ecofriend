@@ -2,30 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../config/constants.dart';
-import '../../providers/news_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
-import '../../utils/theme.dart';
 
-class NewsFeedScreen extends StatefulWidget {
-  const NewsFeedScreen({super.key});
+class QuizResultScreen extends StatefulWidget {
+  final int score;
+  final int totalQuestions;
+  final int earnedPoints;
+  final String courseId;
+  final String quizId;
+
+  const QuizResultScreen({
+    super.key,
+    required this.score,
+    required this.totalQuestions,
+    required this.earnedPoints,
+    required this.courseId,
+    required this.quizId,
+  });
 
   @override
-  State<NewsFeedScreen> createState() => _NewsFeedScreenState();
+  State<QuizResultScreen> createState() => _QuizResultScreenState();
 }
 
-class _NewsFeedScreenState extends State<NewsFeedScreen> {
+class _QuizResultScreenState extends State<QuizResultScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<NewsProvider>(context, listen: false).fetchNews();
       Provider.of<ProfileProvider>(context, listen: false).loadProfile();
+      // TODO: Отправить результаты на backend и обновить профиль
     });
-  }
-
-  Future<void> _refreshNews() async {
-    await Provider.of<NewsProvider>(context, listen: false).fetchNews();
   }
 
   @override
@@ -34,6 +41,9 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
     final scaleWidth = size.width / 375;
     final scaleHeight = size.height / 812;
 
+    final percentage = (widget.score / widget.totalQuestions * 100).round();
+    final isPassed = percentage >= 70;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -41,7 +51,7 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
           Container(
             width: size.width,
             height: size.height,
-            color: const Color(0xFFED8D8C),
+            color: const Color(0xFFBC9CEA),
           ),
 
           // ========== ЛАПКА МЕДВЕДЯ НИЖНЯЯ ПРАВАЯ ==========
@@ -107,27 +117,9 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
                         0,
                       ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Padding(
-                            padding: EdgeInsets.only(top: 22 * scaleHeight),
-                            child: Consumer<AuthProvider>(
-                              builder: (context, auth, _) {
-                                return Text(
-                                  auth.user?.email ?? 'user@example.com',
-                                  style: TextStyle(
-                                    fontFamily: 'Neucha',
-                                    fontSize: 20 * scaleWidth,
-                                    height: 22 / 20,
-                                    letterSpacing: 0.08 * 20 * scaleWidth,
-                                    color: const Color(0xFFF0F0F0),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-
                           // Аватар с кнопкой настроек
                           Stack(
                             clipBehavior: Clip.none,
@@ -184,7 +176,7 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
                                     width: 40 * scaleWidth,
                                     height: 40 * scaleHeight,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFE57F7E),
+                                      color: const Color(0xFFBC9CEA),
                                       shape: BoxShape.circle,
                                       border: Border.all(
                                         color: const Color(0xFF181818),
@@ -207,82 +199,199 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
                       ),
                     ),
 
-                    SizedBox(height: 10 * scaleHeight),
+                    SizedBox(height: 30 * scaleHeight),
 
-                    // ========== ЗАГОЛОВОК "НОВОСТИ" ==========
-                    Padding(
-                      padding: EdgeInsets.only(left: 34 * scaleWidth),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Новости',
-                          style: TextStyle(
-                            fontFamily: 'Neucha',
-                            fontSize: 40 * scaleWidth,
-                            height: 44 / 40,
-                            letterSpacing: 0.06 * 40 * scaleWidth,
-                            color: const Color(0xFF111111),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(height: 20 * scaleHeight),
-
-                    // ========== ЛЕНТА НОВОСТЕЙ (ОБЫЧНЫЙ СКРОЛЛ С PULL-TO-REFRESH) ==========
+                    // ========== РЕЗУЛЬТАТЫ ==========
                     Expanded(
-                      child: Consumer<NewsProvider>(
-                        builder: (context, provider, child) {
-                          if (provider.isLoading && provider.newsList.isEmpty) {
-                            return const Center(
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: EdgeInsets.only(
+                          left: 34 * scaleWidth,
+                          right: 34 * scaleWidth,
+                          bottom: 100 * scaleHeight, // Отступ для навигации
+                        ),
+                        child: Column(
+                          children: [
+                            SizedBox(height: 20 * scaleHeight),
+                            
+                            // Заголовок
+                            Text(
+                              isPassed ? 'Отлично!' : 'Попробуйте еще раз',
+                              style: TextStyle(
+                                fontFamily: 'Neucha',
+                                fontSize: 40 * scaleWidth,
+                                height: 44 / 40,
+                                letterSpacing: 0.06 * 40 * scaleWidth,
+                                color: const Color(0xFF111111),
                               ),
-                            );
-                          }
+                              textAlign: TextAlign.center,
+                            ),
 
-                          if (provider.newsList.isEmpty) {
-                            return Center(
-                              child: Text(
-                                'Новостей пока нет',
-                                style: TextStyle(
-                                  fontFamily: 'Neucha',
-                                  fontSize: 18 * scaleWidth,
-                                  color: const Color(0xFF111111),
+                            SizedBox(height: 40 * scaleHeight),
+
+                            // Контейнер с результатами
+                            Container(
+                              padding: EdgeInsets.all(30 * scaleWidth),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF8F8F8),
+                                borderRadius: BorderRadius.circular(25),
+                                border: Border.all(
+                                  color: const Color(0xFF181818),
+                                  width: 4,
                                 ),
                               ),
-                            );
-                          }
+                              child: Column(
+                                children: [
+                                  // Правильных ответов
+                                  Text(
+                                    'Правильных ответов:',
+                                    style: TextStyle(
+                                      fontFamily: 'Neucha',
+                                      fontSize: 22 * scaleWidth,
+                                      letterSpacing: 0.06 * 22 * scaleWidth,
+                                      color: const Color(0xFF111111),
+                                    ),
+                                  ),
+                                  SizedBox(height: 10 * scaleHeight),
+                                  Text(
+                                    '${widget.score}/${widget.totalQuestions}',
+                                    style: TextStyle(
+                                      fontFamily: 'Neucha',
+                                      fontSize: 48 * scaleWidth,
+                                      fontWeight: FontWeight.bold,
+                                      color: isPassed
+                                          ? const Color(0xFF53C25A)
+                                          : const Color(0xFFED8D8C),
+                                    ),
+                                  ),
 
-                          // RefreshIndicator для pull-to-refresh
-                          return RefreshIndicator(
-                            onRefresh: _refreshNews,
-                            color: const Color(0xFF181818),
-                            backgroundColor: Colors.white,
-                            child: ListView.builder(
-                              padding: EdgeInsets.only(
-                                left: 13 * scaleWidth,
-                                right: 13 * scaleWidth,
-                                bottom: 20 * scaleHeight,
+                                  SizedBox(height: 20 * scaleHeight),
+
+                                  // Процент
+                                  Text(
+                                    '$percentage%',
+                                    style: TextStyle(
+                                      fontFamily: 'Neucha',
+                                      fontSize: 36 * scaleWidth,
+                                      color: const Color(0xFF666666),
+                                    ),
+                                  ),
+
+                                  SizedBox(height: 30 * scaleHeight),
+
+                                  // Начислено баллов
+                                  if (isPassed) ...[
+                                    Text(
+                                      'Начислено баллов:',
+                                      style: TextStyle(
+                                        fontFamily: 'Neucha',
+                                        fontSize: 20 * scaleWidth,
+                                        letterSpacing: 0.06 * 20 * scaleWidth,
+                                        color: const Color(0xFF111111),
+                                      ),
+                                    ),
+                                    SizedBox(height: 10 * scaleHeight),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.star,
+                                          size: 30 * scaleWidth,
+                                          color: const Color(0xFFFAD188),
+                                        ),
+                                        SizedBox(width: 8 * scaleWidth),
+                                        Text(
+                                          '+${widget.earnedPoints}',
+                                          style: TextStyle(
+                                            fontFamily: 'Neucha',
+                                            fontSize: 32 * scaleWidth,
+                                            fontWeight: FontWeight.bold,
+                                            color: const Color(0xFFFAD188),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ],
                               ),
-                              itemCount: provider.newsList.length,
-                              itemBuilder: (context, index) {
-                                final news = provider.newsList[index];
-                                
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                    bottom: 18 * scaleHeight,
+                            ),
+
+                            SizedBox(height: 40 * scaleHeight),
+
+                            // Кнопка "Пройти повторно" (если не прошел)
+                            if (!isPassed)
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).pushReplacementNamed(
+                                    '/quiz',
+                                    arguments: {
+                                      'courseId': widget.courseId,
+                                      'quizId': widget.quizId, // Передаем реальный quizId
+                                    },
+                                  );
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  height: 60 * scaleHeight,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFAD188),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: const Color(0xFF181818),
+                                      width: 4,
+                                    ),
                                   ),
-                                  child: _NewsCard(
-                                    news: news,
-                                    scaleWidth: scaleWidth,
-                                    scaleHeight: scaleHeight,
+                                  child: Center(
+                                    child: Text(
+                                      'Пройти повторно',
+                                      style: TextStyle(
+                                        fontFamily: 'Neucha',
+                                        fontSize: 24 * scaleWidth,
+                                        letterSpacing: 0.06 * 24 * scaleWidth,
+                                        color: Colors.white,
+                                      ),
+                                    ),
                                   ),
+                                ),
+                              ),
+
+                            if (!isPassed) SizedBox(height: 15 * scaleHeight),
+
+                            // Кнопка "Вернуться к курсам"
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).popUntil(
+                                  (route) => route.settings.name == '/courses/basic' ||
+                                      route.settings.name == '/courses/additional' ||
+                                      route.isFirst,
                                 );
                               },
+                              child: Container(
+                                width: double.infinity,
+                                height: 60 * scaleHeight,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF53C25A),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: const Color(0xFF181818),
+                                    width: 4,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'Вернуться к курсам',
+                                    style: TextStyle(
+                                      fontFamily: 'Neucha',
+                                      fontSize: 24 * scaleWidth,
+                                      letterSpacing: 0.06 * 24 * scaleWidth,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
-                          );
-                        },
+                          ],
+                        ),
                       ),
                     ),
 
@@ -355,10 +464,12 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
           ),
           _buildNavIcon(
             'assets/icons/Эко Друг/новости.svg',
-            const Color(0xFFE57F7E),
+            const Color(0xFFED8D8C),
             scaleWidth,
             scaleHeight,
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).pushNamed('/news');
+            },
           ),
           _buildNavIcon(
             'assets/icons/Эко Друг/карта.svg',
@@ -409,147 +520,3 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
   }
 }
 
-// ========== КАРТОЧКА НОВОСТИ ==========
-class _NewsCard extends StatelessWidget {
-  final dynamic news;
-  final double scaleWidth;
-  final double scaleHeight;
-
-  const _NewsCard({
-    required this.news,
-    required this.scaleWidth,
-    required this.scaleHeight,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cityTag = news.tags.isNotEmpty ? news.tags[0] : '';
-    final hasExcerpt = news.excerpt != null && news.excerpt!.isNotEmpty;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8F8F8),
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(
-          color: const Color(0xFF181818),
-          width: 4,
-        ),
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ТЕКСТ СЛЕВА
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 14 * scaleWidth,
-                  vertical: 14 * scaleHeight,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (cityTag.isNotEmpty)
-                      Text(
-                        'В $cityTag',
-                        style: TextStyle(
-                          fontFamily: 'Neucha',
-                          fontSize: 18 * scaleWidth,
-                          height: 20 / 18,
-                          letterSpacing: 0.06 * 18 * scaleWidth,
-                          color: const Color(0xFFFF3C3A),
-                        ),
-                      ),
-                    if (cityTag.isNotEmpty) SizedBox(height: 4 * scaleHeight),
-                    Text(
-                      news.title,
-                      style: TextStyle(
-                        fontFamily: 'Neucha',
-                        fontSize: 16 * scaleWidth,
-                        height: 20 / 16,
-                        letterSpacing: 0.06 * 16 * scaleWidth,
-                        color: const Color(0xFF222222),
-                      ),
-                      maxLines: hasExcerpt ? 4 : 6,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (hasExcerpt) ...[
-                      SizedBox(height: 8 * scaleHeight),
-                      Text(
-                        news.excerpt!,
-                        style: TextStyle(
-                          fontFamily: 'Neucha',
-                          fontSize: 14 * scaleWidth,
-                          height: 16 / 14,
-                          letterSpacing: 0.06 * 14 * scaleWidth,
-                          color: const Color(0xFFFF3C3A),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            
-            // ИЗОБРАЖЕНИЕ СПРАВА
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(21),
-                bottomRight: Radius.circular(21),
-                topLeft: Radius.circular(20),
-                bottomLeft: Radius.circular(20),
-              ),
-              child: news.thumbnail != null
-                  ? Image.network(
-                      news.thumbnail!,
-                      width: 130 * scaleWidth,
-                      fit: BoxFit.cover,
-                      cacheWidth: 260, // Кэширование для производительности
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          width: 130 * scaleWidth,
-                          color: Colors.grey[300],
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
-                              strokeWidth: 2,
-                            ),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return _placeholderImage();
-                      },
-                    )
-                  : _placeholderImage(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _placeholderImage() {
-    return Container(
-      width: 130 * scaleWidth,
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Center(
-        child: Icon(
-          Icons.image,
-          size: 40 * scaleWidth,
-          color: Colors.grey[500],
-        ),
-      ),
-    );
-  }
-}

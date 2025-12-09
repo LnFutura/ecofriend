@@ -277,6 +277,39 @@ exports.getCourseQuiz = async (req, res, next) => {
   }
 };
 
+// @desc    Получить тест по ID
+// @route   GET /api/education/quiz/:id
+// @access  Private
+exports.getQuizById = async (req, res, next) => {
+  try {
+    const quiz = await Quiz.findById(req.params.id);
+
+    if (!quiz) {
+      return res.status(404).json({
+        success: false,
+        message: 'Тест не найден'
+      });
+    }
+
+    // Отправляем правильные ответы (для образовательного приложения это нормально)
+    const quizData = quiz.toObject();
+    quizData.questions = quizData.questions.map(q => ({
+      question: q.question,
+      type: q.type,
+      options: q.options,
+      correctAnswer: q.correctAnswer, // Теперь отправляем правильный ответ
+      points: q.points
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: quizData
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Отправить ответы на тест
 // @route   POST /api/education/courses/:id/quiz/submit
 // @access  Private

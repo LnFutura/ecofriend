@@ -41,6 +41,9 @@ class Course {
 
   // Алиас для совместимости с тестами
   String get difficulty => level;
+  
+  // Геттер для quiz (возвращает quizId)
+  String? get quiz => quizId;
 
   factory Course.fromJson(Map<String, dynamic> json) {
     return Course(
@@ -62,7 +65,9 @@ class Course {
       modules: (json['modules'] as List?)
           ?.map((m) => CourseModule.fromJson(m))
           .toList() ?? [],
-      quizId: json['quiz'],
+      quizId: json['quiz'] is String 
+          ? json['quiz'] 
+          : (json['quiz'] is Map ? json['quiz']['_id'] : null),
       published: json['published'] ?? false,
       enrolledCount: json['enrolledCount'] ?? 0,
       rating: (json['rating'] ?? 0).toDouble(),

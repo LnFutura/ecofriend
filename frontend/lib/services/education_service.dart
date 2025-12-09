@@ -130,6 +130,32 @@ class EducationService {
     }
   }
 
+  // Получить тест по ID
+  Future<Map<String, dynamic>> getQuizById(String quizId) async {
+    try {
+      final token = StorageService.getToken();
+      if (token == null) throw Exception('Необходима авторизация');
+
+      final response = await http.get(
+        Uri.parse('${AppConstants.apiBaseUrl}/education/quiz/$quizId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['data'];
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Тест не найден');
+      }
+    } catch (e) {
+      throw Exception('Ошибка: $e');
+    }
+  }
+
   // Отправить ответы на тест
   Future<Map<String, dynamic>> submitQuiz(String courseId, List answers) async {
     try {

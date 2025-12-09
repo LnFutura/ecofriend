@@ -23,7 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // Сбросить весь state провайдера перед загрузкой
       profileProvider.reset();
       profileProvider.loadProfile();
-    });
+      });
   }
 
   @override
@@ -31,7 +31,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final size = MediaQuery.of(context).size;
     final scaleWidth = size.width / 375;
     final scaleHeight = size.height / 812;
-
+    
     return Scaffold(
       body: Consumer2<ProfileProvider, AuthProvider>(
         builder: (context, profileProvider, authProvider, child) {
@@ -41,20 +41,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           if (profileProvider.errorMessage != null) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                   Text(
                     'Ошибка загрузки профиля',
                     style: TextStyle(fontSize: 18, color: Colors.red),
                   ),
                   SizedBox(height: 20),
-                  ElevatedButton(
+                      ElevatedButton(
                     onPressed: () => profileProvider.loadProfile(),
                     child: Text('Повторить'),
+                      ),
+                    ],
                   ),
-                ],
-              ),
             );
           }
 
@@ -68,15 +68,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final displayName = profile.fullName ?? authProvider.user?.username ?? 'Пользователь';
 
           return Stack(
-            children: [
+                      children: [
               // Фон
-              Container(
+                        Container(
                 width: size.width,
                 height: size.height,
                 decoration: const BoxDecoration(
                   color: Color(0xFF65C6E9), // Цвет из Figma
                 ),
-              ),
+                          ),
               
               // Нижняя правая лапка (за пределами SafeArea, чтобы не обрезалась)
               Positioned(
@@ -93,7 +93,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       fit: BoxFit.contain,
                     ),
                   ),
-                ),
+                              ),
               ),
               
               // Основной контент с SafeArea
@@ -114,11 +114,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             width: 217.64 * scaleWidth,
                             height: 217.64 * scaleHeight,
                             fit: BoxFit.contain,
+                                ),
+                        ),
                           ),
                         ),
-                      ),
-                    ),
-                  
+
                   // Основной контент
                   SingleChildScrollView(
                     child: Padding(
@@ -148,7 +148,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         fontSize: 32 * scaleWidth, // Увеличен размер
                                         fontWeight: FontWeight.normal, // Убрано жирное выделение
                                         color: const Color(0xFF111111),
-                                      ),
+                              ),
                                     ),
                                     SizedBox(height: 8 * scaleHeight),
                                     Text(
@@ -157,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         fontFamily: 'Neucha',
                                         fontSize: 20 * scaleWidth, // Увеличен размер
                                         color: const Color(0xFF252525),
-                                      ),
+                              ),
                                     ),
                                   ],
                                 ),
@@ -196,12 +196,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             'Изменить почту',
                             scaleWidth,
                             scaleHeight,
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(content: Text('Функция в разработке')),
-                              );
-                            },
-                          ),
+                            );
+                          },
+                        ),
 
                           SizedBox(height: 20 * scaleHeight),
 
@@ -210,12 +210,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             'Изменить пароль',
                             scaleWidth,
                             scaleHeight,
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(content: Text('Функция в разработке')),
-                              );
-                            },
-                          ),
+                            );
+                          },
+                        ),
 
                           SizedBox(height: 32 * scaleHeight),
 
@@ -280,7 +280,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             196 * scaleWidth, // Ширина Достижений
                             scaleWidth,
                             scaleHeight,
-                            onTap: () {
+                          onTap: () {
                               // Пока не кликабельно
                             },
                           ),
@@ -295,13 +295,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             134 * scaleWidth, // Ширина Званий (меньше чем Достижения)
                             scaleWidth,
                             scaleHeight,
-                            onTap: () {
+                          onTap: () {
                               // Пока не кликабельно
-                            },
-                          ),
-                        ],
-                      ),
+                          },
+                        ),
+                      ],
                     ),
+                  ),
                   ),
                 ],
               ),
@@ -317,7 +317,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
           );
         },
-      ),
+                ),
     );
   }
 
@@ -442,8 +442,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         fontSize: 24 * scaleWidth,
                         color: const Color(0xFF111111),
                         letterSpacing: 0.06 * 24 * scaleWidth,
-                      ),
-                    ),
+          ),
+        ),
                   ),
                 ),
               ],
@@ -497,7 +497,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             scaleWidth,
             scaleHeight,
             onTap: () {
-              Navigator.of(context).pushNamed('/courses');
+              Navigator.of(context).pushNamed('/education');
             },
           ),
           _buildNavIcon(

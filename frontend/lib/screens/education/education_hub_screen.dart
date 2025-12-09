@@ -2,30 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../config/constants.dart';
-import '../../providers/news_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
-import '../../utils/theme.dart';
 
-class NewsFeedScreen extends StatefulWidget {
-  const NewsFeedScreen({super.key});
+class EducationHubScreen extends StatefulWidget {
+  const EducationHubScreen({super.key});
 
   @override
-  State<NewsFeedScreen> createState() => _NewsFeedScreenState();
+  State<EducationHubScreen> createState() => _EducationHubScreenState();
 }
 
-class _NewsFeedScreenState extends State<NewsFeedScreen> {
+class _EducationHubScreenState extends State<EducationHubScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<NewsProvider>(context, listen: false).fetchNews();
       Provider.of<ProfileProvider>(context, listen: false).loadProfile();
     });
-  }
-
-  Future<void> _refreshNews() async {
-    await Provider.of<NewsProvider>(context, listen: false).fetchNews();
   }
 
   @override
@@ -41,7 +34,7 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
           Container(
             width: size.width,
             height: size.height,
-            color: const Color(0xFFED8D8C),
+            color: const Color(0xFFBC9CEA),
           ),
 
           // ========== ЛАПКА МЕДВЕДЯ НИЖНЯЯ ПРАВАЯ ==========
@@ -184,7 +177,7 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
                                     width: 40 * scaleWidth,
                                     height: 40 * scaleHeight,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFE57F7E),
+                                      color: const Color(0xFFBC9CEA),
                                       shape: BoxShape.circle,
                                       border: Border.all(
                                         color: const Color(0xFF181818),
@@ -209,13 +202,13 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
 
                     SizedBox(height: 10 * scaleHeight),
 
-                    // ========== ЗАГОЛОВОК "НОВОСТИ" ==========
+                    // ========== ЗАГОЛОВОК "ОБУЧЕНИЕ" ==========
                     Padding(
                       padding: EdgeInsets.only(left: 34 * scaleWidth),
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'Новости',
+                          'Обучение',
                           style: TextStyle(
                             fontFamily: 'Neucha',
                             fontSize: 40 * scaleWidth,
@@ -227,62 +220,52 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
                       ),
                     ),
 
-                    SizedBox(height: 20 * scaleHeight),
+                    SizedBox(height: 30 * scaleHeight),
 
-                    // ========== ЛЕНТА НОВОСТЕЙ (ОБЫЧНЫЙ СКРОЛЛ С PULL-TO-REFRESH) ==========
+                    // ========== ТРИ КНОПКИ ==========
                     Expanded(
-                      child: Consumer<NewsProvider>(
-                        builder: (context, provider, child) {
-                          if (provider.isLoading && provider.newsList.isEmpty) {
-                            return const Center(
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                              ),
-                            );
-                          }
-
-                          if (provider.newsList.isEmpty) {
-                            return Center(
-                              child: Text(
-                                'Новостей пока нет',
-                                style: TextStyle(
-                                  fontFamily: 'Neucha',
-                                  fontSize: 18 * scaleWidth,
-                                  color: const Color(0xFF111111),
-                                ),
-                              ),
-                            );
-                          }
-
-                          // RefreshIndicator для pull-to-refresh
-                          return RefreshIndicator(
-                            onRefresh: _refreshNews,
-                            color: const Color(0xFF181818),
-                            backgroundColor: Colors.white,
-                            child: ListView.builder(
-                              padding: EdgeInsets.only(
-                                left: 13 * scaleWidth,
-                                right: 13 * scaleWidth,
-                                bottom: 20 * scaleHeight,
-                              ),
-                              itemCount: provider.newsList.length,
-                              itemBuilder: (context, index) {
-                                final news = provider.newsList[index];
-                                
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                    bottom: 18 * scaleHeight,
-                                  ),
-                                  child: _NewsCard(
-                                    news: news,
-                                    scaleWidth: scaleWidth,
-                                    scaleHeight: scaleHeight,
-                                  ),
-                                );
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 34 * scaleWidth),
+                        child: Column(
+                          children: [
+                            _buildCategoryButton(
+                              'Основные курсы',
+                              'Обучение заботе о природе',
+                              'assets/icons/Эко Друг/diplafs.png',
+                              () {
+                                Navigator.of(context).pushNamed('/courses/basic');
                               },
+                              scaleWidth,
+                              scaleHeight,
                             ),
-                          );
-                        },
+                            
+                            SizedBox(height: 20 * scaleHeight),
+                            
+                            _buildCategoryButton(
+                              'Доп. курсы',
+                              'Особенности борьбы за экологию',
+                              'assets/icons/Эко Друг/graduate.png',
+                              () {
+                                Navigator.of(context).pushNamed('/courses/additional');
+                              },
+                              scaleWidth,
+                              scaleHeight,
+                            ),
+                            
+                            SizedBox(height: 20 * scaleHeight),
+                            
+                            _buildCategoryButton(
+                              'Экофильмы',
+                              'Свалки и прочие беды современного мира',
+                              'assets/icons/Эко Друг/Play.png',
+                              () {
+                                Navigator.of(context).pushNamed('/films');
+                              },
+                              scaleWidth,
+                              scaleHeight,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
 
@@ -326,6 +309,112 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
     );
   }
 
+  Widget _buildCategoryButton(
+    String title,
+    String subtitle,
+    String iconPath,
+    VoidCallback onTap,
+    double scaleWidth,
+    double scaleHeight,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 120 * scaleHeight, // Фиксированная высота
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8F8F8),
+          borderRadius: BorderRadius.circular(25),
+          border: Border.all(
+            color: const Color(0xFF181818),
+            width: 4,
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Верхняя и нижняя части 50/50
+            Column(
+              children: [
+                // Верхняя часть - название (50%)
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.only(
+                      left: 16 * scaleWidth,
+                      right: 80 * scaleWidth, // Отступ для иконки
+                      top: 12 * scaleHeight,
+                      bottom: 8 * scaleHeight,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          fontFamily: 'Neucha',
+                          fontSize: 22 * scaleWidth,
+                          height: 24 / 22,
+                          letterSpacing: 0.06 * 22 * scaleWidth,
+                          color: const Color(0xFF111111),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                // Линия
+                Container(
+                  height: 2,
+                  color: const Color(0xFF181818),
+                ),
+                // Нижняя часть - описание (50%)
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.only(
+                      left: 16 * scaleWidth,
+                      right: 80 * scaleWidth, // Отступ для иконки
+                      top: 8 * scaleHeight,
+                      bottom: 12 * scaleHeight,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontFamily: 'Neucha',
+                          fontSize: 14 * scaleWidth,
+                          height: 16 / 14,
+                          letterSpacing: 0.06 * 14 * scaleWidth,
+                          color: const Color(0xFF666666),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            // Иконка наложенная на линию (БЕЗ круга)
+            Positioned(
+              right: 16 * scaleWidth,
+              top: (120 * scaleHeight - 60 * scaleHeight) / 2, // Центр по высоте
+              child: Container(
+                width: 60 * scaleWidth,
+                height: 60 * scaleHeight,
+                child: iconPath.endsWith('.svg')
+                    ? SvgPicture.asset(
+                        iconPath,
+                        fit: BoxFit.contain,
+                      )
+                    : Image.asset(
+                        iconPath,
+                        fit: BoxFit.contain,
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildBottomNavigationBar(double scaleWidth, double scaleHeight) {
     return Container(
       height: 90 * scaleHeight,
@@ -349,16 +438,16 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
             const Color(0xFFBC9CEA),
             scaleWidth,
             scaleHeight,
-            onTap: () {
-              Navigator.of(context).pushNamed('/education');
-            },
+            onTap: () {},
           ),
           _buildNavIcon(
             'assets/icons/Эко Друг/новости.svg',
-            const Color(0xFFE57F7E),
+            const Color(0xFFED8D8C),
             scaleWidth,
             scaleHeight,
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).pushNamed('/news');
+            },
           ),
           _buildNavIcon(
             'assets/icons/Эко Друг/карта.svg',
@@ -409,147 +498,3 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
   }
 }
 
-// ========== КАРТОЧКА НОВОСТИ ==========
-class _NewsCard extends StatelessWidget {
-  final dynamic news;
-  final double scaleWidth;
-  final double scaleHeight;
-
-  const _NewsCard({
-    required this.news,
-    required this.scaleWidth,
-    required this.scaleHeight,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cityTag = news.tags.isNotEmpty ? news.tags[0] : '';
-    final hasExcerpt = news.excerpt != null && news.excerpt!.isNotEmpty;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8F8F8),
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(
-          color: const Color(0xFF181818),
-          width: 4,
-        ),
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ТЕКСТ СЛЕВА
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 14 * scaleWidth,
-                  vertical: 14 * scaleHeight,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (cityTag.isNotEmpty)
-                      Text(
-                        'В $cityTag',
-                        style: TextStyle(
-                          fontFamily: 'Neucha',
-                          fontSize: 18 * scaleWidth,
-                          height: 20 / 18,
-                          letterSpacing: 0.06 * 18 * scaleWidth,
-                          color: const Color(0xFFFF3C3A),
-                        ),
-                      ),
-                    if (cityTag.isNotEmpty) SizedBox(height: 4 * scaleHeight),
-                    Text(
-                      news.title,
-                      style: TextStyle(
-                        fontFamily: 'Neucha',
-                        fontSize: 16 * scaleWidth,
-                        height: 20 / 16,
-                        letterSpacing: 0.06 * 16 * scaleWidth,
-                        color: const Color(0xFF222222),
-                      ),
-                      maxLines: hasExcerpt ? 4 : 6,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (hasExcerpt) ...[
-                      SizedBox(height: 8 * scaleHeight),
-                      Text(
-                        news.excerpt!,
-                        style: TextStyle(
-                          fontFamily: 'Neucha',
-                          fontSize: 14 * scaleWidth,
-                          height: 16 / 14,
-                          letterSpacing: 0.06 * 14 * scaleWidth,
-                          color: const Color(0xFFFF3C3A),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            
-            // ИЗОБРАЖЕНИЕ СПРАВА
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(21),
-                bottomRight: Radius.circular(21),
-                topLeft: Radius.circular(20),
-                bottomLeft: Radius.circular(20),
-              ),
-              child: news.thumbnail != null
-                  ? Image.network(
-                      news.thumbnail!,
-                      width: 130 * scaleWidth,
-                      fit: BoxFit.cover,
-                      cacheWidth: 260, // Кэширование для производительности
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          width: 130 * scaleWidth,
-                          color: Colors.grey[300],
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
-                              strokeWidth: 2,
-                            ),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return _placeholderImage();
-                      },
-                    )
-                  : _placeholderImage(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _placeholderImage() {
-    return Container(
-      width: 130 * scaleWidth,
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Center(
-        child: Icon(
-          Icons.image,
-          size: 40 * scaleWidth,
-          color: Colors.grey[500],
-        ),
-      ),
-    );
-  }
-}

@@ -28,7 +28,7 @@ dependencies:
   
   # Icons
   cupertino_icons: ^1.0.6
-  
+
   # SVG support
   flutter_svg: ^2.0.9
   

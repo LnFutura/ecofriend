@@ -9,6 +9,7 @@ const {
   enrollCourse,
   completeCourse,
   getCourseQuiz,
+  getQuizById,
   submitQuiz,
   addCourseReview
 } = require('../controllers/educationController');
@@ -22,6 +23,7 @@ router.get('/courses/:id', getCourseById);
 router.post('/courses/:id/enroll', protect, enrollCourse);
 router.post('/courses/:id/complete', protect, completeCourse);
 router.get('/courses/:id/quiz', protect, getCourseQuiz);
+router.get('/quiz/:id', protect, getQuizById);
 router.post('/courses/:id/quiz/submit', protect, submitQuiz);
 router.post('/courses/:id/review', protect, addCourseReview);
 

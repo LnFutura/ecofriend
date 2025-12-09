@@ -10,6 +10,13 @@ import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/courses/courses_screen.dart';
+import 'screens/education/education_hub_screen.dart';
+import 'screens/education/basic_courses_screen.dart';
+import 'screens/education/additional_courses_screen.dart';
+import 'screens/education/film_list_screen.dart';
+import 'screens/education/course_detail_screen.dart';
+import 'screens/education/quiz_screen.dart';
+import 'screens/education/quiz_result_screen.dart';
 import 'screens/news/news_feed_screen.dart';
 import 'screens/news/news_detail_screen.dart';
 import 'services/storage_service.dart';
@@ -48,6 +55,10 @@ class EcoDrugApp extends StatelessWidget {
           '/register': (context) => const RegisterScreen(),
           '/profile': (context) => const ProfileScreen(),
           '/courses': (context) => const CoursesScreen(),
+          '/education': (context) => const EducationHubScreen(),
+          '/courses/basic': (context) => const BasicCoursesScreen(),
+          '/courses/additional': (context) => const AdditionalCoursesScreen(),
+          '/films': (context) => const FilmListScreen(),
           '/news': (context) => const NewsFeedScreen(),
         },
         onGenerateRoute: (settings) {
@@ -58,6 +69,42 @@ class EcoDrugApp extends StatelessWidget {
               builder: (context) => NewsDetailScreen(newsId: newsId),
             );
           }
+          
+          // Course detail route
+          if (settings.name == '/course-detail') {
+            final courseId = settings.arguments as String;
+            return MaterialPageRoute(
+              builder: (context) => CourseDetailScreen(courseId: courseId),
+            );
+          }
+          
+          // Quiz route
+          if (settings.name == '/quiz') {
+            final args = settings.arguments as Map<String, dynamic>;
+            final courseId = args['courseId'] as String;
+            final quizId = args['quizId'] as String;
+            return MaterialPageRoute(
+              builder: (context) => QuizScreen(
+                courseId: courseId,
+                quizId: quizId,
+              ),
+            );
+          }
+          
+          // Quiz result route
+          if (settings.name == '/quiz-result') {
+            final args = settings.arguments as Map<String, dynamic>;
+            return MaterialPageRoute(
+              builder: (context) => QuizResultScreen(
+                score: args['score'] as int,
+                totalQuestions: args['total'] as int,
+                earnedPoints: args['points'] as int,
+                courseId: args['courseId'] as String,
+                quizId: args['quizId'] as String,
+              ),
+            );
+          }
+          
           return null;
         },
       ),

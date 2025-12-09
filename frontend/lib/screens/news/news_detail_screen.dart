@@ -115,6 +115,16 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
       appBar: AppBar(
         title: const Text('Новость'),
         backgroundColor: AppTheme.primaryGreen,
+        actions: [
+          // Кнопка перехода в профиль
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.white),
+            onPressed: () {
+              Navigator.of(context).pushNamed('/profile');
+            },
+            tooltip: 'Профиль',
+          ),
+        ],
       ),
       body: Consumer<NewsProvider>(
         builder: (context, provider, child) {

@@ -186,15 +186,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
             
             // Основной контент
             SafeArea(
-              child: SingleChildScrollView(
+          child: SingleChildScrollView(
                 child: SizedBox(
                   width: screenWidth,
                   height: screenHeight - MediaQuery.of(context).padding.top,
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
+            child: Form(
+              key: _formKey,
+              child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
+                children: [
                         SizedBox(height: 50 * scaleHeight),
                         
                         // Карточка с полями ввода и кнопкой (сверху)
@@ -210,18 +210,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             border: Border.all(
                               color: const Color(0xFF141414),
                               width: 3 * scaleWidth,
-                            ),
-                          ),
+                        ),
+                  ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              // Email field
+                  // Email field
                               SizedBox(
                                 height: 35 * scaleHeight,
                                 child: TextFormField(
-                                  controller: _emailController,
-                                  keyboardType: TextInputType.emailAddress,
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
                                   decoration: InputDecoration(
                                     hintText: 'Телефон или email',
                                     hintStyle: TextStyle(
@@ -243,26 +243,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     color: Colors.black,
                                     letterSpacing: 1.6,
                                   ),
-                                  validator: Validators.validateEmail,
-                                ),
+                    validator: Validators.validateEmail,
+                  ),
                               ),
                               
                               SizedBox(height: 8 * scaleHeight),
-                              
+
                               // Разделитель
                               Container(
                                 width: 222.5 * scaleWidth,
                                 height: 1,
                                 color: const Color(0xFF141414),
-                              ),
+                  ),
                               
                               SizedBox(height: 8 * scaleHeight),
-                              
-                              // Password field
+
+                  // Password field
                               SizedBox(
                                 height: 35 * scaleHeight,
                                 child: TextFormField(
-                                  controller: _passwordController,
+                    controller: _passwordController,
                                   obscureText: _obscurePassword,
                                   decoration: InputDecoration(
                                     hintText: 'Пароль',
@@ -305,8 +305,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     color: Colors.black,
                                     letterSpacing: 1.6,
                                   ),
-                                  validator: Validators.validatePassword,
-                                ),
+                    validator: Validators.validatePassword,
+                  ),
                               ),
                               
                               SizedBox(height: 8 * scaleHeight),
@@ -316,14 +316,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 width: 222.5 * scaleWidth,
                                 height: 1,
                                 color: const Color(0xFF141414),
-                              ),
+                  ),
                               
                               SizedBox(height: 20 * scaleHeight), // Увеличили отступ с 12 до 20
-                              
+
                               // Кнопка "Продолжить" внутри формы (появляется только при заполнении)
                               if (_showButton) ...[
-                                Consumer<AuthProvider>(
-                                  builder: (context, authProvider, child) {
+                  Consumer<AuthProvider>(
+                    builder: (context, authProvider, child) {
                                     return GestureDetector(
                                       onTap: authProvider.isLoading ? null : _handleRegister,
                                       child: Container(
@@ -359,9 +359,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                 ),
                                         ),
                                       ),
-                                    );
-                                  },
-                                ),
+                      );
+                    },
+                  ),
                                 SizedBox(height: 10 * scaleHeight), // Отступ снизу теперь в массиве
                               ],
                             ],
@@ -401,13 +401,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           Icons.arrow_back,
                           color: AppTheme.textDark,
                           size: 24,
-                        ),
                       ),
-                    ),
+                      ),
                   ),
-                ),
+                  ),
               ),
             ),
+          ),
           ],
         ),
       ),

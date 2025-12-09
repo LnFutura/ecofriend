@@ -28,20 +28,20 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      
+
       - name: Install backend dependencies
         working-directory: ./backend
         run: npm install
-      
+
       - name: Run backend tests
         working-directory: ./backend
         env:
@@ -49,7 +49,7 @@ jobs:
           MONGO_URI: mongodb://localhost:27017/ecodrug_test
           JWT_SECRET: test_jwt_secret_key_for_ci
         run: npm test -- --coverage
-      
+
       - name: Upload backend coverage
         uses: codecov/codecov-action@v3
         with:
@@ -63,30 +63,30 @@ jobs:
   frontend-tests:
     name: Frontend Tests (Flutter)
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.16.0'
           channel: 'stable'
-      
+
       - name: Install frontend dependencies
         working-directory: ./frontend
         run: flutter pub get
-      
+
       - name: Run Flutter analyzer
         working-directory: ./frontend
         run: flutter analyze --no-fatal-infos || true
         continue-on-error: true
-      
+
       - name: Run frontend tests
         working-directory: ./frontend
         run: flutter test test/screens/ test/integration/ --coverage
-      
+
       - name: Upload frontend coverage
         uses: codecov/codecov-action@v3
         with:
@@ -100,25 +100,25 @@ jobs:
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-      
+
       - name: Backend npm audit
         working-directory: ./backend
         run: npm audit --audit-level=high || true
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.16.0'
-      
+
       - name: Frontend dependencies check
         working-directory: ./frontend
         run: flutter pub outdated || true
@@ -129,11 +129,11 @@ jobs:
   docker-build:
     name: Docker Build Test
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Validate docker-compose
         run: docker compose config
       
@@ -150,7 +150,7 @@ jobs:
     name: All Tests Passed ✅
     runs-on: ubuntu-latest
     needs: [backend-tests, frontend-tests, security-audit, docker-build]
-    
+
     steps:
       - name: Success message
         run: |
