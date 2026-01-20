@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../config/constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
+import '../../services/education_service.dart';
 
 class QuizResultScreen extends StatefulWidget {
   final int score;
@@ -29,9 +30,24 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ProfileProvider>(context, listen: false).loadProfile();
-      // TODO: Отправить результаты на backend и обновить профиль
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+      await profileProvider.loadProfile();
+      
+      // Отправить результаты на backend и обновить профиль
+      final percentage = (widget.score / widget.totalQuestions * 100).round();
+      if (percentage >= 70) { // Если тест пройден
+        try {
+          final educationService = EducationService();
+          await educationService.completeCourse(widget.courseId);
+          print('Course completed! Points added.');
+          // Обновить профиль после начисления баллов
+          await profileProvider.loadProfile();
+        } catch (e) {
+          print('Error completing course: $e');
+          // Не показываем ошибку пользователю, чтобы не портить впечатление
+        }
+      }
     });
   }
 
@@ -448,9 +464,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
             scaleWidth,
             scaleHeight,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Экопоходы в разработке')),
-              );
+              Navigator.of(context).pushNamed('/eco-hikes');
             },
           ),
           _buildNavIcon(
@@ -477,9 +491,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
             scaleWidth,
             scaleHeight,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Карта в разработке')),
-              );
+              Navigator.of(context).pushNamed('/map');
             },
           ),
         ],

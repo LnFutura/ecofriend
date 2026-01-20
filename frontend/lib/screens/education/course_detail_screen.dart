@@ -389,9 +389,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             scaleWidth,
             scaleHeight,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Экопоходы в разработке')),
-              );
+              Navigator.of(context).pushNamed('/eco-hikes');
             },
           ),
           _buildNavIcon(
@@ -418,9 +416,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             scaleWidth,
             scaleHeight,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Карта в разработке')),
-              );
+              Navigator.of(context).pushNamed('/map');
             },
           ),
         ],

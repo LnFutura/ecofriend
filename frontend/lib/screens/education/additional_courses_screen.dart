@@ -259,9 +259,7 @@ class _AdditionalCoursesScreenState extends State<AdditionalCoursesScreen> {
                             itemCount: eduProvider.courses.length,
                             itemBuilder: (context, index) {
                               final course = eduProvider.courses[index];
-                              final isCompleted = profileProvider.profile?.completedCourses
-                                      ?.contains(course.id) ??
-                                  false;
+                              final isCompleted = profileProvider.completedCourses.contains(course.id);
 
                               return Padding(
                                 padding: EdgeInsets.only(bottom: 18 * scaleHeight),
@@ -470,9 +468,7 @@ class _AdditionalCoursesScreenState extends State<AdditionalCoursesScreen> {
             scaleWidth,
             scaleHeight,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Экопоходы в разработке')),
-              );
+              Navigator.of(context).pushNamed('/eco-hikes');
             },
           ),
           _buildNavIcon(
@@ -499,9 +495,7 @@ class _AdditionalCoursesScreenState extends State<AdditionalCoursesScreen> {
             scaleWidth,
             scaleHeight,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Карта в разработке')),
-              );
+              Navigator.of(context).pushNamed('/map');
             },
           ),
         ],

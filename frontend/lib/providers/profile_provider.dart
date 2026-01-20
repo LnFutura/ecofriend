@@ -20,6 +20,12 @@ class ProfileProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isUploading => _isUpLoading;
   String? get errorMessage => _errorMessage;
+  
+  /// Получить список ID пройденных курсов
+  List<String> get completedCourses {
+    if (_profile == null) return [];
+    return _profile!.completedCourses.map((id) => id.toString()).toList();
+  }
 
   /// Очистить сообщение об ошибке
   void clearError() {

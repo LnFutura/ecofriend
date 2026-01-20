@@ -17,13 +17,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // Загрузить профиль при открытии экрана
+    // Загрузить профиль при входе на экран
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
-      // Сбросить весь state провайдера перед загрузкой
-      profileProvider.reset();
       profileProvider.loadProfile();
-      });
+    });
   }
 
   @override
@@ -281,7 +279,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             scaleWidth,
                             scaleHeight,
                           onTap: () {
-                              // Пока не кликабельно
+                              Navigator.of(context).pushNamed('/achievements');
                             },
                           ),
 
@@ -486,9 +484,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             scaleWidth,
             scaleHeight,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Экопоходы в разработке')),
-              );
+              Navigator.of(context).pushNamed('/eco-hikes');
             },
           ),
           _buildNavIcon(
@@ -515,9 +511,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             scaleWidth,
             scaleHeight,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Карта в разработке')),
-              );
+              Navigator.of(context).pushNamed('/map');
             },
           ),
         ],

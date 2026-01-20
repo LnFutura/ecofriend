@@ -19,6 +19,9 @@ import 'screens/education/quiz_screen.dart';
 import 'screens/education/quiz_result_screen.dart';
 import 'screens/news/news_feed_screen.dart';
 import 'screens/news/news_detail_screen.dart';
+import 'screens/map/map_screen.dart';
+import 'screens/eco_hikes/eco_hikes_screen.dart';
+import 'screens/achievements/achievements_screen.dart';
 import 'services/storage_service.dart';
 import 'utils/theme.dart';
 
@@ -60,6 +63,9 @@ class EcoDrugApp extends StatelessWidget {
           '/courses/additional': (context) => const AdditionalCoursesScreen(),
           '/films': (context) => const FilmListScreen(),
           '/news': (context) => const NewsFeedScreen(),
+          '/map': (context) => const MapScreen(),
+          '/eco-hikes': (context) => const EcoHikesScreen(),
+          '/achievements': (context) => const AchievementsScreen(),
         },
         onGenerateRoute: (settings) {
           // Handle routes with parameters

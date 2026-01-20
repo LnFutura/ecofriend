@@ -339,9 +339,7 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
             scaleWidth,
             scaleHeight,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Экопоходы в разработке')),
-              );
+              Navigator.of(context).pushNamed('/eco-hikes');
             },
           ),
           _buildNavIcon(
@@ -366,9 +364,7 @@ class _NewsFeedScreenState extends State<NewsFeedScreen> {
             scaleWidth,
             scaleHeight,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Карта в разработке')),
-              );
+              Navigator.of(context).pushNamed('/map');
             },
           ),
         ],
