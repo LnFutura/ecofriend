@@ -1,5 +1,6 @@
 const Achievement = require('../models/Achievement');
 const Profile = require('../models/Profile');
+const Course = require('../models/Course');
 
 // @desc    Получить все достижения
 // @route   GET /api/achievements
@@ -12,7 +13,7 @@ exports.getAllAchievements = async (req, res, next) => {
     if (type) filter.type = type;
     if (rarity) filter.rarity = rarity;
 
-    const achievements = await Achievement.find(filter).sort({ rarity: -1, points: -1 });
+    const achievements = await Achievement.find(filter).sort({ order: 1 });
 
     res.status(200).json({
       success: true,
@@ -116,12 +117,12 @@ exports.deleteAchievement = async (req, res, next) => {
   }
 };
 
-// @desc    Разблокировать достижение для пользователя
-// @route   POST /api/achievements/:id/unlock
-// @access  Private
-exports.unlockAchievement = async (req, res, next) => {
+// @desc    Разблокировать достижение для пользователя (ручная выдача модератором)
+// @route   POST /api/achievements/:code/grant/:userId
+// @access  Private (Admin)
+exports.grantAchievement = async (req, res, next) => {
   try {
-    const achievement = await Achievement.findById(req.params.id);
+    const achievement = await Achievement.findOne({ code: req.params.code });
 
     if (!achievement) {
       return res.status(404).json({
@@ -130,7 +131,7 @@ exports.unlockAchievement = async (req, res, next) => {
       });
     }
 
-    const profile = await Profile.findOne({ user: req.user.id });
+    const profile = await Profile.findOne({ user: req.params.userId });
 
     if (!profile) {
       return res.status(404).json({
@@ -140,7 +141,11 @@ exports.unlockAchievement = async (req, res, next) => {
     }
 
     // Проверяем, что достижение еще не получено
-    if (profile.achievements.includes(achievement._id)) {
+    const alreadyHas = profile.achievements.some(
+      a => a.achievement && a.achievement.toString() === achievement._id.toString()
+    );
+    
+    if (alreadyHas) {
       return res.status(400).json({
         success: false,
         message: 'Достижение уже получено'
@@ -148,14 +153,17 @@ exports.unlockAchievement = async (req, res, next) => {
     }
 
     // Добавляем достижение и начисляем очки
-    profile.achievements.push(achievement._id);
+    profile.achievements.push({
+      achievement: achievement._id,
+      unlockedAt: new Date()
+    });
     profile.points += achievement.points;
 
     await profile.save();
 
     res.status(200).json({
       success: true,
-      message: 'Достижение разблокировано!',
+      message: 'Достижение выдано!',
       data: {
         achievement,
         earnedPoints: achievement.points,
@@ -173,7 +181,7 @@ exports.unlockAchievement = async (req, res, next) => {
 exports.getMyAchievements = async (req, res, next) => {
   try {
     const profile = await Profile.findOne({ user: req.user.id })
-      .populate('achievements');
+      .populate('achievements.achievement');
 
     if (!profile) {
       return res.status(404).json({
@@ -182,10 +190,208 @@ exports.getMyAchievements = async (req, res, next) => {
       });
     }
 
+    // Преобразуем в удобный формат
+    const userAchievements = profile.achievements.map(a => ({
+      ...a.achievement.toObject(),
+      unlockedAt: a.unlockedAt
+    }));
+
     res.status(200).json({
       success: true,
-      count: profile.achievements.length,
-      data: profile.achievements
+      count: userAchievements.length,
+      data: userAchievements
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Получить все достижения с информацией о разблокировке для текущего пользователя
+// @route   GET /api/achievements/status
+// @access  Private
+exports.getAchievementsStatus = async (req, res, next) => {
+  try {
+    // Получаем все достижения
+    const allAchievements = await Achievement.find().sort({ order: 1 });
+    
+    // Получаем достижения пользователя
+    const profile = await Profile.findOne({ user: req.user.id });
+    
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Профиль не найден'
+      });
+    }
+
+    // Создаем Set для быстрой проверки
+    const unlockedIds = new Set(
+      profile.achievements.map(a => a.achievement.toString())
+    );
+    const unlockedDates = {};
+    profile.achievements.forEach(a => {
+      unlockedDates[a.achievement.toString()] = a.unlockedAt;
+    });
+
+    // Формируем ответ
+    const achievementsWithStatus = allAchievements.map(achievement => ({
+      ...achievement.toObject(),
+      isUnlocked: unlockedIds.has(achievement._id.toString()),
+      unlockedAt: unlockedDates[achievement._id.toString()] || null
+    }));
+
+    res.status(200).json({
+      success: true,
+      count: achievementsWithStatus.length,
+      data: achievementsWithStatus
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Вспомогательная функция для выдачи достижения пользователю
+exports.grantAchievementToUser = async (userId, achievementCode) => {
+  try {
+    const achievement = await Achievement.findOne({ code: achievementCode });
+    if (!achievement) return null;
+
+    const profile = await Profile.findOne({ user: userId });
+    if (!profile) return null;
+
+    // Проверяем, что достижение еще не получено
+    const alreadyHas = profile.achievements.some(
+      a => a.achievement && a.achievement.toString() === achievement._id.toString()
+    );
+    
+    if (alreadyHas) return null;
+
+    // Добавляем достижение
+    profile.achievements.push({
+      achievement: achievement._id,
+      unlockedAt: new Date()
+    });
+    profile.points += achievement.points;
+
+    await profile.save();
+    return achievement;
+  } catch (error) {
+    console.error('Error granting achievement:', error);
+    return null;
+  }
+};
+
+// Функция проверки и выдачи достижений за курсы
+exports.checkCourseAchievements = async (userId) => {
+  try {
+    const profile = await Profile.findOne({ user: userId }).populate('completedCourses');
+    if (!profile) return;
+
+    // Получаем все курсы
+    const allCourses = await Course.find();
+    const basicCourses = allCourses.filter(c => c.type === 'basic');
+    const additionalCourses = allCourses.filter(c => c.type === 'additional');
+
+    const completedIds = new Set(profile.completedCourses.map(c => c._id.toString()));
+
+    // Проверяем barsukavr (все основные курсы)
+    const allBasicCompleted = basicCourses.every(c => completedIds.has(c._id.toString()));
+    if (allBasicCompleted && basicCourses.length > 0) {
+      await exports.grantAchievementToUser(userId, 'barsukavr');
+    }
+
+    // Проверяем morzhist (все дополнительные курсы)
+    const allAdditionalCompleted = additionalCourses.every(c => completedIds.has(c._id.toString()));
+    if (allAdditionalCompleted && additionalCourses.length > 0) {
+      await exports.grantAchievementToUser(userId, 'morzhist');
+    }
+  } catch (error) {
+    console.error('Error checking course achievements:', error);
+  }
+};
+
+// Функция проверки и выдачи звания Сурикант за прохождение теста
+exports.checkQuizAchievements = async (userId) => {
+  try {
+    // Сурикант выдается за прохождение хотя бы одного теста
+    // Просто выдаем его - если уже есть, grantAchievementToUser вернет null
+    await exports.grantAchievementToUser(userId, 'syrikant');
+  } catch (error) {
+    console.error('Error checking quiz achievements:', error);
+  }
+};
+
+// Функция проверки и выдачи званий за экопоходы
+exports.checkEcoHikeAchievements = async (userId, participationCount, organizationCount) => {
+  try {
+    // Получаем все звания за участие в экопоходах
+    const participationTitles = await Achievement.find({
+      type: 'title',
+      conditionType: 'eco_hike_participation'
+    }).sort({ requiredCount: 1 });
+
+    // Получаем все звания за организацию экопоходов
+    const organizationTitles = await Achievement.find({
+      type: 'title',
+      conditionType: 'eco_hike_organization'
+    }).sort({ requiredCount: 1 });
+
+    // Выдаём звания за участие
+    for (const title of participationTitles) {
+      if (participationCount >= title.requiredCount) {
+        await exports.grantAchievementToUser(userId, title.code);
+      }
+    }
+
+    // Выдаём звания за организацию
+    for (const title of organizationTitles) {
+      if (organizationCount >= title.requiredCount) {
+        await exports.grantAchievementToUser(userId, title.code);
+      }
+    }
+  } catch (error) {
+    console.error('Error checking eco hike achievements:', error);
+  }
+};
+
+// @desc    Получить все звания с информацией о разблокировке для текущего пользователя
+// @route   GET /api/achievements/titles/status
+// @access  Private
+exports.getTitlesStatus = async (req, res, next) => {
+  try {
+    // Получаем все звания
+    const allTitles = await Achievement.find({ type: 'title' }).sort({ order: 1 });
+    
+    // Получаем достижения пользователя
+    const profile = await Profile.findOne({ user: req.user.id });
+    
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Профиль не найден'
+      });
+    }
+
+    // Создаем Set для быстрой проверки
+    const unlockedIds = new Set(
+      profile.achievements.map(a => a.achievement.toString())
+    );
+    const unlockedDates = {};
+    profile.achievements.forEach(a => {
+      unlockedDates[a.achievement.toString()] = a.unlockedAt;
+    });
+
+    // Формируем ответ
+    const titlesWithStatus = allTitles.map(title => ({
+      ...title.toObject(),
+      isUnlocked: unlockedIds.has(title._id.toString()),
+      unlockedAt: unlockedDates[title._id.toString()] || null
+    }));
+
+    res.status(200).json({
+      success: true,
+      count: titlesWithStatus.length,
+      data: titlesWithStatus
     });
   } catch (error) {
     next(error);

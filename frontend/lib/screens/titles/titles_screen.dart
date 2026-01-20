@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../config/constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
+import '../../services/achievement_service.dart';
 
 class TitlesScreen extends StatefulWidget {
   const TitlesScreen({super.key});
@@ -13,28 +14,89 @@ class TitlesScreen extends StatefulWidget {
 }
 
 class _TitlesScreenState extends State<TitlesScreen> {
-  // Список званий в правильном порядке
-  final List<Map<String, String>> _titles = [
-    {'title': 'Рыбовой', 'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/rybovoi1.png'},
-    {'title': 'Сурикант', 'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/syrikant2.png'},
-    {'title': 'Младший\nлосенант', 'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/mllosenant3.png'},
-    {'title': 'Лосенант', 'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/losenant4.png'},
-    {'title': 'Старший\nлосенант', 'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/stlosenant5.png'},
-    {'title': 'Капибатан', 'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/kapibatan6.png'},
-    {'title': 'Бобёр', 'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/bober7.png'},
-    {'title': 'Подпавлин\nник', 'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/podpavlinik8.png'},
-    {'title': 'Павлинник', 'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/pavlinik9.png'},
-    {'title': 'Генерал\nБобёр', 'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/gbober10.png'},
-    {'title': 'Генерал\nЛосенант', 'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/glosenant11.png'},
-    {'title': 'Генерал\nПавлинник', 'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/gpavlinik12.png'},
-    {'title': 'Мамонаршл', 'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/mamonarshl13.png'},
-  ];
+  final AchievementService _achievementService = AchievementService();
+  List<Map<String, dynamic>> _titles = [];
+  bool _isLoading = true;
+
+  // Маппинг кодов на локальные иконки
+  static const Map<String, String> _iconPaths = {
+    'rybovoi': 'assets/icons/Эко Друг/achivementscreen/звания/rybovoi1.png',
+    'syrikant': 'assets/icons/Эко Друг/achivementscreen/звания/syrikant2.png',
+    'ml_losenant': 'assets/icons/Эко Друг/achivementscreen/звания/mllosenant3.png',
+    'losenant': 'assets/icons/Эко Друг/achivementscreen/звания/losenant4.png',
+    'st_losenant': 'assets/icons/Эко Друг/achivementscreen/звания/stlosenant5.png',
+    'kapibatan': 'assets/icons/Эко Друг/achivementscreen/звания/kapibatan6.png',
+    'bober': 'assets/icons/Эко Друг/achivementscreen/звания/bober7.png',
+    'podpavlinik': 'assets/icons/Эко Друг/achivementscreen/звания/podpavlinik8.png',
+    'pavlinik': 'assets/icons/Эко Друг/achivementscreen/звания/pavlinik9.png',
+    'general_bober': 'assets/icons/Эко Друг/achivementscreen/звания/gbober10.png',
+    'general_losenant': 'assets/icons/Эко Друг/achivementscreen/звания/glosenant11.png',
+    'general_pavlinik': 'assets/icons/Эко Друг/achivementscreen/звания/gpavlinik12.png',
+    'mamonarshl': 'assets/icons/Эко Друг/achivementscreen/звания/mamonarshl13.png',
+  };
+
+  // Маппинг названий для переноса строк
+  static const Map<String, String> _displayNames = {
+    'rybovoi': 'Рыбовой',
+    'syrikant': 'Сурикант',
+    'ml_losenant': 'Младший\nлосенант',
+    'losenant': 'Лосенант',
+    'st_losenant': 'Старший\nлосенант',
+    'kapibatan': 'Капибатан',
+    'bober': 'Бобёр',
+    'podpavlinik': 'Подпавлин\nник',
+    'pavlinik': 'Павлинник',
+    'general_bober': 'Генерал\nБобёр',
+    'general_losenant': 'Генерал\nЛосенант',
+    'general_pavlinik': 'Генерал\nПавлинник',
+    'mamonarshl': 'Мамонаршл',
+  };
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ProfileProvider>(context, listen: false).loadProfile();
+      _loadTitles();
+    });
+  }
+
+  Future<void> _loadTitles() async {
+    try {
+      final titlesData = await _achievementService.getTitlesStatus();
+      if (titlesData.isNotEmpty) {
+        setState(() {
+          _titles = titlesData;
+          _isLoading = false;
+        });
+      } else {
+        // Fallback на мок-данные если бэкенд недоступен
+        _loadMockData();
+      }
+    } catch (e) {
+      print('Error loading titles: $e');
+      _loadMockData();
+    }
+  }
+
+  void _loadMockData() {
+    setState(() {
+      _titles = [
+        {'code': 'rybovoi', 'name': 'Рыбовой', 'isUnlocked': true},
+        {'code': 'syrikant', 'name': 'Сурикант', 'isUnlocked': false},
+        {'code': 'ml_losenant', 'name': 'Младший лосенант', 'isUnlocked': false},
+        {'code': 'losenant', 'name': 'Лосенант', 'isUnlocked': false},
+        {'code': 'st_losenant', 'name': 'Старший лосенант', 'isUnlocked': false},
+        {'code': 'kapibatan', 'name': 'Капибатан', 'isUnlocked': false},
+        {'code': 'bober', 'name': 'Бобёр', 'isUnlocked': false},
+        {'code': 'podpavlinik', 'name': 'Подпавлинник', 'isUnlocked': false},
+        {'code': 'pavlinik', 'name': 'Павлинник', 'isUnlocked': false},
+        {'code': 'general_bober', 'name': 'Генерал Бобёр', 'isUnlocked': false},
+        {'code': 'general_losenant', 'name': 'Генерал Лосенант', 'isUnlocked': false},
+        {'code': 'general_pavlinik', 'name': 'Генерал Павлинник', 'isUnlocked': false},
+        {'code': 'mamonarshl', 'name': 'Мамонаршл', 'isUnlocked': false},
+      ];
+      _isLoading = false;
     });
   }
 
@@ -266,6 +328,14 @@ class _TitlesScreenState extends State<TitlesScreen> {
   }
 
   Widget _buildTitlesGrid(double scaleWidth, double scaleHeight) {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: Color(0xFF336C41),
+        ),
+      );
+    }
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -278,36 +348,69 @@ class _TitlesScreenState extends State<TitlesScreen> {
       itemCount: _titles.length,
       itemBuilder: (context, index) {
         final title = _titles[index];
-        // Лосенант (index 3) имеет красный цвет
-        final isLosenant = index == 3;
+        final code = title['code'] as String? ?? '';
+        final isUnlocked = title['isUnlocked'] as bool? ?? false;
+        
+        // Используем локальный маппинг для иконок и названий
+        final iconPath = _iconPaths[code] ?? title['iconPath'] as String? ?? '';
+        final displayName = _displayNames[code] ?? title['name'] as String? ?? code;
+        
+        // Лосенант имеет красный цвет текста
+        final isLosenant = code == 'losenant';
+        
         return _buildTitleItem(
-          title['title']!,
-          title['iconPath']!,
+          displayName,
+          iconPath,
           scaleWidth,
           scaleHeight,
-          textColor: isLosenant ? const Color(0xFF700000) : const Color(0xFF031900),
+          isUnlocked: isUnlocked,
+          textColor: isLosenant 
+              ? (isUnlocked ? const Color(0xFF700000) : const Color(0xFF888888))
+              : (isUnlocked ? const Color(0xFF031900) : const Color(0xFF888888)),
         );
       },
     );
   }
 
-  Widget _buildTitleItem(String title, String iconPath, double scaleWidth, double scaleHeight, {Color textColor = const Color(0xFF031900)}) {
+  Widget _buildTitleItem(
+    String title,
+    String iconPath,
+    double scaleWidth,
+    double scaleHeight, {
+    bool isUnlocked = true,
+    Color textColor = const Color(0xFF031900),
+  }) {
+    Widget iconWidget = Image.asset(
+      iconPath,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) => Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF336C41),
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+
+    // Применяем grayscale для заблокированных званий
+    if (!isUnlocked) {
+      iconWidget = ColorFiltered(
+        colorFilter: const ColorFilter.matrix(<double>[
+          0.2126, 0.7152, 0.0722, 0, 0,
+          0.2126, 0.7152, 0.0722, 0, 0,
+          0.2126, 0.7152, 0.0722, 0, 0,
+          0,      0,      0,      1, 0,
+        ]),
+        child: iconWidget,
+      );
+    }
+
     return Column(
       children: [
         // Иконка
         SizedBox(
           width: 60 * scaleWidth,
           height: 60 * scaleWidth,
-          child: Image.asset(
-            iconPath,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF336C41),
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          ),
+          child: iconWidget,
         ),
 
         SizedBox(height: 6 * scaleHeight),

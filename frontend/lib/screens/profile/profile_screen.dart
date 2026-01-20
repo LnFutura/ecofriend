@@ -163,15 +163,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               
                               SizedBox(width: 12 * scaleWidth),
                               
-                              // Аватар (узкий но широкий прямоугольник)
-                              AvatarWidget(
-                                avatarUrl: profile.avatar,
-                                displayName: displayName,
-                                width: 90 * scaleWidth,  // Увеличена ширина
-                                height: 101 * scaleHeight, // Высота прежняя
-                                onEditTap: () {
-                                  profileProvider.showImageSourceDialog(context);
-                                },
+                              // Аватар + кнопка выхода
+                              Column(
+                                children: [
+                                  // Аватар (узкий но широкий прямоугольник)
+                                  AvatarWidget(
+                                    avatarUrl: profile.avatar,
+                                    displayName: displayName,
+                                    width: 90 * scaleWidth,  // Увеличена ширина
+                                    height: 101 * scaleHeight, // Высота прежняя
+                                    onEditTap: () {
+                                      profileProvider.showImageSourceDialog(context);
+                                    },
+                                  ),
+                                  SizedBox(height: 8 * scaleHeight),
+                                  // Кнопка выхода
+                                  GestureDetector(
+                                    onTap: () async {
+                                      await authProvider.logout();
+                                      if (context.mounted) {
+                                        Navigator.of(context).pushReplacementNamed('/login');
+                                      }
+                                    },
+                                    child: Container(
+                                      width: 90 * scaleWidth,
+                                      height: 32 * scaleHeight,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFE57373),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: const Color(0xFF181818),
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          'Выйти',
+                                          style: TextStyle(
+                                            fontFamily: 'Neucha',
+                                            fontSize: 16 * scaleWidth,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),

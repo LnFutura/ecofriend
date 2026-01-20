@@ -39,8 +39,14 @@ const ProfileSchema = new mongoose.Schema(
     },
     achievements: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Achievement',
+        achievement: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Achievement',
+        },
+        unlockedAt: {
+          type: Date,
+          default: Date.now,
+        },
       },
     ],
     completedCourses: [

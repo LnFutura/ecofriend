@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Profile = require('../models/Profile');
+const Achievement = require('../models/Achievement');
 const generateToken = require('../utils/generateToken');
 
 // @desc    Register new user
@@ -28,10 +29,25 @@ const register = async (req, res, next) => {
       role: role || 'user',
     });
 
-    // Create profile for user
-    const profile = await Profile.create({
-      user: user._id,
+    // Get registration achievements for new users (Суслент + Рыбовой)
+    const registrationAchievements = await Achievement.find({ 
+      conditionType: 'registration' 
     });
+
+    // Create profile for user with registration achievements
+    const profileData = {
+      user: user._id,
+    };
+    
+    if (registrationAchievements.length > 0) {
+      profileData.achievements = registrationAchievements.map(a => ({
+        achievement: a._id,
+        unlockedAt: new Date()
+      }));
+      profileData.points = registrationAchievements.reduce((sum, a) => sum + a.points, 0);
+    }
+
+    const profile = await Profile.create(profileData);
 
     // Link profile to user
     user.profile = profile._id;

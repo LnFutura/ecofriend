@@ -4,23 +4,7 @@ import 'package:provider/provider.dart';
 import '../../config/constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
-
-// Модель достижения
-class Achievement {
-  final String id;
-  final String title;
-  final String iconPath;
-  final bool isUnlocked;
-  final String? description;
-
-  Achievement({
-    required this.id,
-    required this.title,
-    required this.iconPath,
-    required this.isUnlocked,
-    this.description,
-  });
-}
+import '../../services/achievement_service.dart';
 
 class AchievementsScreen extends StatefulWidget {
   const AchievementsScreen({super.key});
@@ -30,80 +14,112 @@ class AchievementsScreen extends StatefulWidget {
 }
 
 class _AchievementsScreenState extends State<AchievementsScreen> {
-  // Моковые данные - Учёные степени
-  // Типы квадратов: purple, red, green
-  final List<Map<String, dynamic>> _degrees = [
-    {
-      'id': '1',
-      'title': 'Суслент',
-      'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/Суслент.png',
-      'type': 'purple',
-      'isUnlocked': true,
-    },
-    {
-      'id': '2',
-      'title': 'Барсукавр',
-      'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/Барсукавр.png',
-      'type': 'purple',
-      'isUnlocked': true,
-    },
-    {
-      'id': '3',
-      'title': 'Моржистр',
-      'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/Моржистр.png',
-      'type': 'red',
-      'isUnlocked': false,
-    },
-    {
-      'id': '4',
-      'title': 'Кандидат\nлосеологических наук',
-      'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/Кандидат лосеологических наук.png',
-      'type': 'green',
-      'isUnlocked': false,
-    },
-    {
-      'id': '5',
-      'title': 'Доктор\nлосеологических наук',
-      'iconPath': 'assets/icons/Эко Друг/achivementscreen/звания/Доктор лосеологических наук.png',
-      'type': 'green',
-      'isUnlocked': false,
-    },
-  ];
+  final AchievementService _achievementService = AchievementService();
+  
+  List<Map<String, dynamic>> _degrees = [];
+  List<Map<String, dynamic>> _awards = [];
+  bool _isLoading = true;
 
-  // Моковые данные - Премии
-  final List<Achievement> _awards = [
-    Achievement(
-      id: '6',
-      title: 'Премия\nзайца',
-      iconPath: 'assets/icons/Эко Друг/achivementscreen/звания/rabbit.png',
-      isUnlocked: true,
-    ),
-    Achievement(
-      id: '7',
-      title: 'Премия\nкабана',
-      iconPath: 'assets/icons/Эко Друг/achivementscreen/звания/Премия кабана.png',
-      isUnlocked: true,
-    ),
-    Achievement(
-      id: '8',
-      title: 'Премия\nмедведя',
-      iconPath: 'assets/icons/Эко Друг/achivementscreen/звания/Премия медведя.png',
-      isUnlocked: true,
-    ),
-    Achievement(
-      id: '9',
-      title: 'Носорогиевская\nпремия',
-      iconPath: 'assets/icons/Эко Друг/achivementscreen/звания/Носорогиевская премия.png',
-      isUnlocked: true,
-    ),
-  ];
+  // Маппинг кодов на локальные иконки (пока нет CDN)
+  final Map<String, String> _iconPaths = {
+    'suslet': 'assets/icons/Эко Друг/achivementscreen/звания/Суслент.png',
+    'barsukavr': 'assets/icons/Эко Друг/achivementscreen/звания/Барсукавр.png',
+    'morzhist': 'assets/icons/Эко Друг/achivementscreen/звания/Моржистр.png',
+    'kandidat': 'assets/icons/Эко Друг/achivementscreen/звания/Кандидат лосеологических наук.png',
+    'doktor': 'assets/icons/Эко Друг/achivementscreen/звания/Доктор лосеологических наук.png',
+    'rabbit': 'assets/icons/Эко Друг/achivementscreen/звания/rabbit.png',
+    'boar': 'assets/icons/Эко Друг/achivementscreen/звания/Премия кабана.png',
+    'bear': 'assets/icons/Эко Друг/achivementscreen/звания/Премия медведя.png',
+    'rhino': 'assets/icons/Эко Друг/achivementscreen/звания/Носорогиевская премия.png',
+  };
+
+  // Маппинг кодов на colorType
+  final Map<String, String> _colorTypes = {
+    'suslet': 'purple',
+    'barsukavr': 'purple',
+    'morzhist': 'red',
+    'kandidat': 'green',
+    'doktor': 'green',
+  };
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ProfileProvider>(context, listen: false).loadProfile();
+      _loadAchievements();
     });
+  }
+
+  Future<void> _loadAchievements() async {
+    try {
+      final achievements = await _achievementService.getAchievementsStatus();
+      
+      final degrees = <Map<String, dynamic>>[];
+      final awards = <Map<String, dynamic>>[];
+
+      for (final a in achievements) {
+        final code = a['code'] as String? ?? '';
+        final item = {
+          'id': a['_id'] ?? '',
+          'code': code,
+          'title': _formatTitle(a['name'] as String? ?? ''),
+          'iconPath': _iconPaths[code] ?? '',
+          'type': _colorTypes[code] ?? 'purple',
+          'isUnlocked': a['isUnlocked'] ?? false,
+        };
+
+        if (a['type'] == 'degree') {
+          degrees.add(item);
+        } else if (a['type'] == 'award') {
+          awards.add(item);
+        }
+      }
+
+      setState(() {
+        _degrees = degrees;
+        _awards = awards;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading achievements: $e');
+      // Fallback на моковые данные
+      _loadMockData();
+    }
+  }
+
+  void _loadMockData() {
+    setState(() {
+      _degrees = [
+        {'id': '1', 'code': 'suslet', 'title': 'Суслент', 'iconPath': _iconPaths['suslet']!, 'type': 'purple', 'isUnlocked': true},
+        {'id': '2', 'code': 'barsukavr', 'title': 'Барсукавр', 'iconPath': _iconPaths['barsukavr']!, 'type': 'purple', 'isUnlocked': false},
+        {'id': '3', 'code': 'morzhist', 'title': 'Моржистр', 'iconPath': _iconPaths['morzhist']!, 'type': 'red', 'isUnlocked': false},
+        {'id': '4', 'code': 'kandidat', 'title': 'Кандидат\nлосеологических наук', 'iconPath': _iconPaths['kandidat']!, 'type': 'green', 'isUnlocked': false},
+        {'id': '5', 'code': 'doktor', 'title': 'Доктор\nлосеологических наук', 'iconPath': _iconPaths['doktor']!, 'type': 'green', 'isUnlocked': false},
+      ];
+      _awards = [
+        {'id': '6', 'code': 'rabbit', 'title': 'Премия\nзайца', 'iconPath': _iconPaths['rabbit']!, 'isUnlocked': false},
+        {'id': '7', 'code': 'boar', 'title': 'Премия\nкабана', 'iconPath': _iconPaths['boar']!, 'isUnlocked': false},
+        {'id': '8', 'code': 'bear', 'title': 'Премия\nмедведя', 'iconPath': _iconPaths['bear']!, 'isUnlocked': false},
+        {'id': '9', 'code': 'rhino', 'title': 'Носорогиевская\nпремия', 'iconPath': _iconPaths['rhino']!, 'isUnlocked': false},
+      ];
+      _isLoading = false;
+    });
+  }
+
+  String _formatTitle(String name) {
+    // Добавляем переносы для длинных названий
+    if (name == 'Кандидат лосеологических наук') {
+      return 'Кандидат\nлосеологических наук';
+    }
+    if (name == 'Доктор лосеологических наук') {
+      return 'Доктор\nлосеологических наук';
+    }
+    if (name == 'Премия зайца') return 'Премия\nзайца';
+    if (name == 'Премия кабана') return 'Премия\nкабана';
+    if (name == 'Премия медведя') return 'Премия\nмедведя';
+    if (name == 'Носорогиевская премия') return 'Носорогиевская\nпремия';
+    return name;
   }
 
   @override
@@ -178,17 +194,24 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Секция "Учёные степени" с padding
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20 * scaleWidth),
-                              child: _buildDegreesSection(scaleWidth, scaleHeight),
-                            ),
+                            if (_isLoading)
+                              Padding(
+                                padding: EdgeInsets.all(40 * scaleWidth),
+                                child: const Center(child: CircularProgressIndicator()),
+                              )
+                            else ...[
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 20 * scaleWidth),
+                                child: _buildDegreesSection(scaleWidth, scaleHeight),
+                              ),
 
-                            SizedBox(height: 20 * scaleHeight),
+                              SizedBox(height: 20 * scaleHeight),
 
-                            // Секция "Премии" без бокового padding
-                            _buildAwardsSection(scaleWidth, scaleHeight),
+                              // Секция "Премии" без бокового padding
+                              _buildAwardsSection(scaleWidth, scaleHeight),
 
-                            SizedBox(height: 20 * scaleHeight),
+                              SizedBox(height: 20 * scaleHeight),
+                            ],
                           ],
                         ),
                       ),
@@ -417,18 +440,45 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     final String? iconPath = degree['iconPath'] as String?;
     final String title = degree['title'] as String;
     final String type = degree['type'] as String;
+    final bool isUnlocked = degree['isUnlocked'] as bool? ?? false;
     
-    // Цвет текста зависит от типа
+    // Цвет текста зависит от типа (серый для заблокированных)
     Color textColor;
-    switch (type) {
-      case 'red':
-        textColor = const Color(0xFF9F3030);
-        break;
-      case 'green':
-        textColor = const Color(0xFF0D3A18);
-        break;
-      default:
-        textColor = const Color(0xFF111111);
+    if (!isUnlocked) {
+      textColor = const Color(0xFF888888);
+    } else {
+      switch (type) {
+        case 'red':
+          textColor = const Color(0xFF9F3030);
+          break;
+        case 'green':
+          textColor = const Color(0xFF0D3A18);
+          break;
+        default:
+          textColor = const Color(0xFF111111);
+      }
+    }
+    
+    // Виджет иконки
+    Widget iconWidget = iconPath != null && iconPath.isNotEmpty
+        ? Image.asset(
+            iconPath,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => const SizedBox(),
+          )
+        : const SizedBox();
+    
+    // Применяем grayscale фильтр для заблокированных
+    if (!isUnlocked) {
+      iconWidget = ColorFiltered(
+        colorFilter: const ColorFilter.matrix(<double>[
+          0.2126, 0.7152, 0.0722, 0, 0,
+          0.2126, 0.7152, 0.0722, 0, 0,
+          0.2126, 0.7152, 0.0722, 0, 0,
+          0, 0, 0, 1, 0,
+        ]),
+        child: iconWidget,
+      );
     }
     
     return Column(
@@ -437,12 +487,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
         SizedBox(
           width: iconSize,
           height: iconSize,
-          child: iconPath != null
-              ? Image.asset(
-                  iconPath,
-                  fit: BoxFit.contain,
-                )
-              : const SizedBox(),
+          child: iconWidget,
         ),
 
         SizedBox(height: 8 * scaleHeight),
@@ -498,7 +543,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: _awards.map((award) {
-              return _buildAwardItem(award, scaleWidth, scaleHeight);
+              return _buildAwardItem(award as Map<String, dynamic>, scaleWidth, scaleHeight);
             }).toList(),
           ),
         ],
@@ -506,17 +551,40 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     );
   }
 
-  Widget _buildAwardItem(Achievement award, double scaleWidth, double scaleHeight) {
+  Widget _buildAwardItem(Map<String, dynamic> award, double scaleWidth, double scaleHeight) {
+    final String iconPath = award['iconPath'] as String? ?? '';
+    final String title = award['title'] as String? ?? '';
+    final bool isUnlocked = award['isUnlocked'] as bool? ?? false;
+    
+    // Виджет иконки
+    Widget iconWidget = iconPath.isNotEmpty
+        ? Image.asset(
+            iconPath,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => const SizedBox(),
+          )
+        : const SizedBox();
+    
+    // Применяем grayscale фильтр для заблокированных
+    if (!isUnlocked) {
+      iconWidget = ColorFiltered(
+        colorFilter: const ColorFilter.matrix(<double>[
+          0.2126, 0.7152, 0.0722, 0, 0,
+          0.2126, 0.7152, 0.0722, 0, 0,
+          0.2126, 0.7152, 0.0722, 0, 0,
+          0, 0, 0, 1, 0,
+        ]),
+        child: iconWidget,
+      );
+    }
+    
     return Column(
       children: [
         // Иконка (PNG уже содержит круг)
         SizedBox(
           width: 55 * scaleWidth,
           height: 55 * scaleWidth,
-          child: Image.asset(
-            award.iconPath,
-            fit: BoxFit.contain,
-          ),
+          child: iconWidget,
         ),
 
         SizedBox(height: 8 * scaleHeight),
@@ -525,12 +593,12 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
         SizedBox(
           width: 80 * scaleWidth,
           child: Text(
-            award.title,
+            title,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Neucha',
               fontSize: 14 * scaleWidth,
-              color: const Color(0xFFD5E6AD),
+              color: isUnlocked ? const Color(0xFFD5E6AD) : const Color(0xFF888888),
               height: 1.2,
             ),
           ),

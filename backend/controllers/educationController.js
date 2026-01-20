@@ -225,6 +225,10 @@ exports.completeCourse = async (req, res, next) => {
 
     await profile.save();
 
+    // Проверяем достижения за курсы
+    const { checkCourseAchievements } = require('./achievementController');
+    await checkCourseAchievements(req.user.id);
+
     res.status(200).json({
       success: true,
       message: 'Курс завершен! Поздравляем!',
@@ -334,6 +338,10 @@ exports.submitQuiz = async (req, res, next) => {
     }
 
     const result = course.quiz.checkAnswers(answers);
+
+    // Выдаём звание "Сурикант" за прохождение теста
+    const { checkQuizAchievements } = require('./achievementController');
+    await checkQuizAchievements(req.user.id);
 
     res.status(200).json({
       success: true,
