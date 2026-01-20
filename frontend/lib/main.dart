@@ -22,6 +22,7 @@ import 'screens/news/news_detail_screen.dart';
 import 'screens/map/map_screen.dart';
 import 'screens/eco_hikes/eco_hikes_screen.dart';
 import 'screens/achievements/achievements_screen.dart';
+import 'screens/titles/titles_screen.dart';
 import 'services/storage_service.dart';
 import 'utils/theme.dart';
 
@@ -66,6 +67,7 @@ class EcoDrugApp extends StatelessWidget {
           '/map': (context) => const MapScreen(),
           '/eco-hikes': (context) => const EcoHikesScreen(),
           '/achievements': (context) => const AchievementsScreen(),
+          '/titles': (context) => const TitlesScreen(),
         },
         onGenerateRoute: (settings) {
           // Handle routes with parameters

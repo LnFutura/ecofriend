@@ -294,7 +294,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             scaleWidth,
                             scaleHeight,
                           onTap: () {
-                              // Пока не кликабельно
+                              Navigator.of(context).pushNamed('/titles');
                           },
                         ),
                       ],
